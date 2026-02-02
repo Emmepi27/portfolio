@@ -9,6 +9,8 @@ export type Project = {
     constraints: string[];
     solution: string[];
     impact: string[];
+    /** Optional human-readable timeline (e.g. "MVP 2–6 settimane"); fallback to year in UI. */
+    timeline?: string;
     links?: { demo?: string; repo?: string };
   };
 
@@ -39,6 +41,7 @@ export type Project = {
         "Analisi ripetibili via query",
         "Base solida per metriche e ottimizzazioni",
       ],
+      timeline: "MVP 2–6 settimane",
       links: { repo: "https://github.com/Emmepi27/rsfly" },
     },
     {

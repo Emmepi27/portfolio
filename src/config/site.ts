@@ -11,10 +11,14 @@ if (process.env.VERCEL_ENV === "production" && normalizedUrl.includes("localhost
   );
 }
 
+const rawEmail = process.env.NEXT_PUBLIC_EMAIL ?? "";
+const email =
+  rawEmail && !/^mailto:/i.test(rawEmail) ? `mailto:${rawEmail}` : rawEmail;
+
 const links = {
   github: "https://github.com/Emmepi27",
   linkedin: process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "",
-  email: process.env.NEXT_PUBLIC_EMAIL ?? "",
+  email,
 };
 
 export const site = {

@@ -64,7 +64,7 @@ export default function RootLayout({
           Salta al contenuto
         </a>
         <Navbar />
-        <main id="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px))]">
+        <main id="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
           {children}
         </main>
         <footer className="border-t border-white/10">
