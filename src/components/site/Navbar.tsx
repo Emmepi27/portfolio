@@ -123,6 +123,7 @@ export default function Navbar() {
 
   const [scrolled, setScrolled] = React.useState(false);
   const [isOpen, setIsOpen] = React.useState(false);
+  const closeMobile = React.useCallback(() => setIsOpen(false), []);
 
   const activeKey = React.useMemo(() => getActiveKey(pathname), [pathname]);
 
@@ -134,17 +135,17 @@ export default function Navbar() {
   }, []);
 
   React.useEffect(() => {
-    setIsOpen(false);
-  }, [pathname]);
+    closeMobile();
+  }, [pathname, closeMobile]);
 
   React.useEffect(() => {
     if (!isOpen) return;
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setIsOpen(false);
+      if (e.key === 'Escape') closeMobile();
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen]);
+  }, [isOpen, closeMobile]);
 
   const headerVariants: Variants = {
     hidden: reduceMotion ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 },
@@ -257,7 +258,7 @@ export default function Navbar() {
         </button>
       </div>
 
-      <NavbarMobile isOpen={isOpen} items={NAV_ITEMS} activeKey={activeKey} onClose={() => setIsOpen(false)} />
+      <NavbarMobile isOpen={isOpen} items={NAV_ITEMS} activeKey={activeKey} onClose={closeMobile} />
     </motion.header>
   );
 }

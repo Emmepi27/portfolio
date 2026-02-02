@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion, type PanInfo, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -22,17 +21,12 @@ type Props = {
 };
 
 export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Props) {
-  const pathname = usePathname();
   const reduceMotion = useReducedMotion();
 
   const [dragY, setDragY] = React.useState(0);
   const scrollYRef = React.useRef(0);
   const prevBodyStyleRef = React.useRef<string>('');
   const prevHtmlOverflowRef = React.useRef<string>('');
-
-  React.useEffect(() => {
-    if (isOpen) onClose();
-  }, [pathname, isOpen, onClose]);
 
   React.useEffect(() => {
     if (!isOpen) setDragY(0);
