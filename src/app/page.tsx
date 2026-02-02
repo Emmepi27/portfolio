@@ -5,7 +5,7 @@ import HeroPortrait from "@/components/home/HeroPortrait";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: { absolute: "M — Sviluppo GIS/PostGIS e Web-App: Next.js, GeoDjango, PostGIS" },
+  title: { absolute: "Manuel Pammer — Sviluppo GIS/PostGIS e Web-App: Next.js, GeoDjango, PostGIS" },
   description:
     "Web Engineer specializzato in GIS/PostGIS, Next.js e GeoDjango. Applicazioni data-intensive, mappe e database geografici. Performance, SEO e MVP in 2–6 settimane.",
   alternates: { canonical: new URL(site.url) },

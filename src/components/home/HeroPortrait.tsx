@@ -24,7 +24,7 @@ export default function HeroPortrait() {
       </div>
 
       {/* Desktop: portrait card */}
-      <div className="relative hidden min-w-0 max-w-[420px] overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] lg:block">
+      <div className="relative hidden w-full min-w-0 max-w-[420px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] lg:block">
         <div className="relative aspect-[4/5] w-full">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_70%_20%,rgba(252,211,77,0.08),transparent)]" aria-hidden />
           <Image

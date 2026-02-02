@@ -2,7 +2,7 @@ import Link from "next/link";
 import { site } from "@/config/site";
 
 export const metadata = {
-  title: "About M — Metodologia & Stack (React/Next.js)",
+  title: "About Manuel Pammer — Metodologia & Stack (React/Next.js)",
   description:
     "Il mio approccio allo sviluppo web: modellazione del problema, vincoli espliciti e implementazione tipizzata. Stack: React, Next.js, PostGIS, TypeScript.",
   alternates: { canonical: new URL("/about", site.url).href },

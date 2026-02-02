@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { site } from '@/config/site';
 import NavbarMobile from './NavbarMobile';
 
 type NavItemKey = 'home' | 'work' | 'services' | 'about' | 'contact';
@@ -52,7 +53,7 @@ function BrandMark() {
       >
         M
       </span>
-      <span className="hidden xl:block text-sm text-neutral-200 tracking-tight">Portfolio</span>
+      <span className="hidden xl:block text-sm text-neutral-200 tracking-tight">{site.person.name}</span>
     </Link>
   );
 }

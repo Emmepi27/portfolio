@@ -22,13 +22,13 @@ const links = {
 };
 
 export const site = {
-  name: "M — Web Engineer",
+  name: "Manuel Pammer — Web Engineer",
   url: normalizedUrl,
   description:
     "Web engineer (Next.js/React) con focus su performance, SEO e app data-heavy (GIS/PostGIS).",
   links,
   person: {
-    name: "M",
+    name: "Manuel Pammer",
     jobTitle: "Web Engineer",
     addressLocality: "Roma",
     addressCountry: "IT",

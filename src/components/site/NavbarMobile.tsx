@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion, useReducedMotion, type PanInfo, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { site } from '@/config/site';
 
 type NavItemKey = 'home' | 'work' | 'services' | 'about' | 'contact';
 
@@ -159,7 +160,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 border border-white/10 text-white font-semibold">
                   M
                 </span>
-                <span className="text-sm text-neutral-200 tracking-tight">Portfolio</span>
+                <span className="text-sm text-neutral-200 tracking-tight">{site.person.name}</span>
               </Link>
 
               <button

@@ -11,7 +11,7 @@ const serif = Bodoni_Moda({ subsets: ["latin"], variable: "--font-serif" });
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: { default: site.name, template: "%s · M" },
+  title: { default: site.name, template: "%s · Manuel Pammer" },
   description: site.description,
   openGraph: {
     title: site.name,
