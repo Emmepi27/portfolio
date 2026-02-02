@@ -11,7 +11,8 @@ export type Project = {
     impact: string[];
     links?: { demo?: string; repo?: string };
   };
-  
+
+  /** Canonical slugs: lowercase, used for URLs and getProject lookup. */
   export const projects: Project[] = [
     {
       slug: "rsfly",
@@ -38,7 +39,7 @@ export type Project = {
         "Analisi ripetibili via query",
         "Base solida per metriche e ottimizzazioni",
       ],
-      links: { repo: "https://github.com/USERNAME/rsfly" },
+      links: { repo: "https://github.com/Emmepi27/rsfly" },
     },
     {
       slug: "olivier-estetica-sartoriale",
@@ -87,6 +88,7 @@ export type Project = {
   ];
   
   export function getProject(slug: string) {
-    return projects.find((p) => p.slug === slug);
+    const normalized = slug.trim().toLowerCase();
+    return projects.find((p) => p.slug === normalized);
   }
   

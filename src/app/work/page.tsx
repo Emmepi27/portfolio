@@ -1,11 +1,32 @@
 import Link from "next/link";
 import { projects } from "@/content/projects";
+import { site } from "@/config/site";
+import JsonLd from "@/components/JsonLd";
 
-export const metadata = { title: "Work" };
+export const metadata = {
+  title: "Case Studies: Architettura, Vincoli e Impatto",
+  description:
+    "Selezione di progetti con focus tecnico: architettura, scelte implementative (Next.js, TypeScript), gestione vincoli e risultati misurati.",
+  alternates: { canonical: new URL("/work", site.url).href },
+};
 
 export default function WorkPage() {
+  const itemListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Work",
+    itemListElement: projects.map((p, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: p.title,
+      url: `${site.url}/work/${p.slug}`,
+    })),
+  };
+
   return (
     <div className="space-y-8">
+      <JsonLd data={itemListJsonLd} />
+
       <header className="space-y-3">
         <h1 className="font-[var(--font-serif)] text-4xl">Work</h1>
         <p className="max-w-2xl text-zinc-300">

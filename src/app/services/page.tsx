@@ -1,7 +1,13 @@
 import Link from "next/link";
 import { Wrench, Search, Rocket } from "lucide-react";
+import { site } from "@/config/site";
 
-export const metadata = { title: "Services" };
+export const metadata = {
+  title: "Servizi: Rebuild, SEO Tecnico & Performance",
+  description:
+    "Sviluppo custom Next.js, audit SEO tecnico, miglioramento Core Web Vitals e refactoring legacy. Soluzioni engineering-first per scalabilità e mantenibilità.",
+  alternates: { canonical: new URL("/services", site.url).href },
+};
 
 const services = [
   {

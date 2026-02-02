@@ -1,32 +1,64 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
+import { site } from "@/config/site";
 import { getProject, projects } from "@/content/projects";
+import JsonLd from "@/components/JsonLd";
 import Link from "next/link";
+
+function normalizeSlug(slug: string): string {
+  return slug.trim().toLowerCase();
+}
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({
+export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
-}): Metadata {
-  const p = getProject(params.slug);
-  if (!p) return { title: "Work" };
-  return { title: p.title, description: p.summary };
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const normalized = normalizeSlug(slug);
+  const p = getProject(normalized);
+  if (!p) {
+    return {
+      title: "Work",
+    };
+  }
+  return {
+    title: p.title,
+    description: p.summary,
+    alternates: { canonical: new URL(`/work/${p.slug}`, site.url).href },
+  };
 }
 
-export default function WorkDetailPage({
+export default async function WorkDetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
-  const p = getProject(params.slug);
+  const { slug } = await params;
+  const normalized = normalizeSlug(slug);
+  if (normalized !== slug) {
+    permanentRedirect(`/work/${normalized}`);
+  }
+  const p = getProject(normalized);
   if (!p) notFound();
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: `${site.url}/` },
+      { "@type": "ListItem", position: 2, name: "Work", item: `${site.url}/work` },
+      { "@type": "ListItem", position: 3, name: p.title, item: `${site.url}/work/${p.slug}` },
+    ],
+  };
 
   return (
     <article className="space-y-10">
+      <JsonLd data={breadcrumbJsonLd} />
       <header className="space-y-4">
         <Link href="/work" className="text-sm text-zinc-300 hover:text-white">
           ← Tutti i lavori

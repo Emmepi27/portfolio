@@ -1,5 +1,12 @@
 import Link from "next/link";
 import { projects } from "@/content/projects";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: { absolute: "M — Web Engineer: Next.js, SEO & Data-Heavy Apps" },
+  description:
+    "Web Engineer specializzato in Next.js, React e SEO tecnico. Sviluppo applicazioni data-intensive (GIS/PostGIS) e siti performanti pronti per la produzione.",
+};
 
 export default function HomePage() {
   const top = projects.slice(0, 3);

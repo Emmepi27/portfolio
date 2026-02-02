@@ -1,5 +1,15 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+## Production Environment
+
+Set `NEXT_PUBLIC_SITE_URL` in your production environment (e.g., Vercel project settings):
+
+```bash
+NEXT_PUBLIC_SITE_URL=https://yourdomain.com
+```
+
+This ensures correct absolute URLs in metadata, canonical tags, sitemap, and robots.txt. The build will fail in production if this variable is not set.
+
 ## Getting Started
 
 First, run the development server:

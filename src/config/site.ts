@@ -1,13 +1,51 @@
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
+const baseUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
+const normalizedUrl = baseUrl.replace(/\/$/, "");
+
+// Guardrail: prevent localhost in production
+if (process.env.VERCEL_ENV === "production" && normalizedUrl.includes("localhost")) {
+  throw new Error(
+    "NEXT_PUBLIC_SITE_URL must be set in production environment. Set it in Vercel project settings."
+  );
+}
+
+const links = {
+  github: "https://github.com/Emmepi27",
+  linkedin: process.env.NEXT_PUBLIC_LINKEDIN_URL ?? "",
+  email: process.env.NEXT_PUBLIC_EMAIL ?? "",
+};
 
 export const site = {
   name: "M — Web Engineer",
-  url: baseUrl,
+  url: normalizedUrl,
   description:
     "Web engineer (Next.js/React) con focus su performance, SEO e app data-heavy (GIS/PostGIS).",
-  links: {
-    github: "https://github.com/USERNAME",
-    linkedin: "https://www.linkedin.com/in/USERNAME/",
-    email: "mailto:hello@example.com",
+  links,
+  person: {
+    name: "M",
+    jobTitle: "Web Engineer",
+    addressLocality: "Roma",
+    addressCountry: "IT",
+    sameAs: [
+      "https://github.com/Emmepi27",
+      ...(links.linkedin ? [links.linkedin] : []),
+    ],
   },
 } as const;
+
+// Guardrail: prevent placeholder values in production
+if (process.env.VERCEL_ENV === "production") {
+  const hasPlaceholderEmail =
+    !site.links.email || site.links.email.includes("example.com");
+  const hasPlaceholderLinkedIn =
+    !site.links.linkedin || site.links.linkedin.includes("TODO");
+
+  if (hasPlaceholderEmail || hasPlaceholderLinkedIn) {
+    throw new Error(
+      "Set NEXT_PUBLIC_EMAIL and NEXT_PUBLIC_LINKEDIN_URL in production environment. " +
+        "These are required for contact information."
+    );
+  }
+}

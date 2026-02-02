@@ -9,7 +9,7 @@ export default function Navbar() {
           <span className="font-[var(--font-serif)] text-lg">{site.name}</span>
         </Link>
 
-        <nav className="flex items-center gap-6 text-sm text-zinc-300">
+        <nav aria-label="Navigazione principale" className="flex items-center gap-6 text-sm text-zinc-300">
           <Link href="/work" className="hover:text-zinc-100">
             Work
           </Link>
@@ -21,6 +21,7 @@ export default function Navbar() {
           </Link>
           <Link
             href="/contact"
+            aria-label="Vai ai contatti"
             className="rounded-full bg-white px-4 py-2 text-black hover:bg-zinc-200"
           >
             Parliamo
