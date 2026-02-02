@@ -77,12 +77,16 @@ export default function ServicesPage() {
           <div>
             <h2 className="font-medium">Vuoi parlare di un progetto?</h2>
             <p className="mt-1 text-sm text-zinc-300">
-              Mandami contesto + obiettivo + vincoli. Rispondo con piano e priorità.
+              Mandami contesto + obiettivo + vincoli. Rispondo con piano e priorità.{" "}
+              <Link href="/services/agenzie" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">
+                Collaborazioni con agenzie
+              </Link>
+              .
             </p>
           </div>
           <Link
             href="/contact"
-            className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200"
+            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             Parliamo
           </Link>

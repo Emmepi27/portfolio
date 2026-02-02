@@ -7,13 +7,13 @@ export default function HeroPortrait() {
     <>
       {/* Mobile: round avatar + 2 lines micro-proof */}
       <div className="flex min-w-0 items-center gap-4 lg:hidden">
-        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
+        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
           <Image
             src={PORTRAIT_SRC}
-            alt=""
-            width={80}
-            height={80}
-            sizes="80px"
+            alt="Manuel Pammer, Web Engineer"
+            width={96}
+            height={96}
+            sizes="96px"
             className="h-full w-full object-cover"
           />
         </div>
@@ -29,7 +29,7 @@ export default function HeroPortrait() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_70%_20%,rgba(252,211,77,0.08),transparent)]" aria-hidden />
           <Image
             src={PORTRAIT_SRC}
-            alt=""
+            alt="Manuel Pammer, Web Engineer"
             fill
             sizes="(min-width: 1024px) 420px, 0px"
             className="object-cover"

@@ -1,4 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+
+// Next.js injects noindex for 404 responses when notFound() is used.
+// Custom title/description for not-found UI (avoids wrong snippet if crawler sees 404).
+export const metadata: Metadata = {
+  title: "Pagina non trovata",
+  description: "La pagina richiesta non esiste. Torna alla home o ai case study.",
+  robots: { index: false, follow: true },
+};
 
 export default function NotFound() {
   return (

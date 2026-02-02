@@ -4,7 +4,7 @@ import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
 
 export const metadata = {
-  title: "Case Studies: Architettura, Vincoli e Impatto",
+  title: "Case Studies: Architettura, Vincoli e Impatto (Next.js, TypeScript)",
   description:
     "Selezione di progetti con focus tecnico: architettura, scelte implementative (Next.js, TypeScript), gestione vincoli e risultati misurati.",
   alternates: { canonical: new URL("/work", site.url).href },

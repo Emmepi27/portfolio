@@ -46,13 +46,14 @@ export default async function WorkDetailPage({
   const p = getProject(normalized);
   if (!p) notFound();
 
+  const base = site.url.replace(/\/$/, "");
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: `${site.url}/` },
-      { "@type": "ListItem", position: 2, name: "Work", item: `${site.url}/work` },
-      { "@type": "ListItem", position: 3, name: p.title, item: `${site.url}/work/${p.slug}` },
+      { "@type": "ListItem", position: 1, name: "Home", item: { "@id": `${base}/` } },
+      { "@type": "ListItem", position: 2, name: "Work", item: { "@id": `${base}/work` } },
+      { "@type": "ListItem", position: 3, name: p.title, item: { "@id": `${base}/work/${p.slug}` } },
     ],
   };
 

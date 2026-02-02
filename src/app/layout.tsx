@@ -9,6 +9,8 @@ import Navbar from "@/components/site/Navbar";
 const sans = Manrope({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Bodoni_Moda({ subsets: ["latin"], variable: "--font-serif" });
 
+export const viewport = { width: "device-width", initialScale: 1 };
+
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
   title: { default: site.name, template: "%s · Manuel Pammer" },
