@@ -5,15 +5,15 @@ const PORTRAIT_SRC = "/images/portrait.webp";
 export default function HeroPortrait() {
   return (
     <>
-      {/* Mobile: 56px round avatar + 2 lines micro-proof */}
+      {/* Mobile: round avatar + 2 lines micro-proof */}
       <div className="flex min-w-0 items-center gap-4 lg:hidden">
-        <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
+        <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
           <Image
             src={PORTRAIT_SRC}
             alt=""
-            width={56}
-            height={56}
-            sizes="56px"
+            width={80}
+            height={80}
+            sizes="80px"
             className="h-full w-full object-cover"
           />
         </div>
@@ -32,7 +32,7 @@ export default function HeroPortrait() {
             alt=""
             fill
             sizes="(min-width: 1024px) 420px, 0px"
-            className="object-cover grayscale"
+            className="object-cover"
           />
         </div>
       </div>
