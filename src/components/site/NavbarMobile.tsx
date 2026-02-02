@@ -32,8 +32,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
 
   React.useEffect(() => {
     if (isOpen) onClose();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, isOpen, onClose]);
 
   React.useEffect(() => {
     if (!isOpen) setDragY(0);
@@ -82,12 +81,12 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
       opacity: 1,
       transition: reduceMotion
         ? { duration: 0.01 }
-        : { y: { duration: 0.85, ease: [0.28, 0.76, 0, 1] }, opacity: { duration: 0.35, ease: 'easeOut' } }
+        : { y: { duration: 0.85, ease: [0.28, 0.76, 0, 1] as const }, opacity: { duration: 0.35, ease: 'easeOut' } }
     },
     exit: {
       y: '-100%',
       opacity: 0,
-      transition: reduceMotion ? { duration: 0.01 } : { y: { duration: 0.7, ease: [0.65, 0, 0.92, 1] }, opacity: { duration: 0.25 } }
+      transition: reduceMotion ? { duration: 0.01 } : { y: { duration: 0.7, ease: [0.65, 0, 0.92, 1] as const }, opacity: { duration: 0.25 } }
     }
   };
 
@@ -98,9 +97,9 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
   };
 
   const linkVars: Variants = {
-    hidden: reduceMotion ? { y: 0, opacity: 1 } : { y: 22, opacity: 0, filter: 'blur(10px)' },
-    show: { y: 0, opacity: 1, filter: 'blur(0px)', transition: reduceMotion ? { duration: 0.01 } : { duration: 0.6, ease: [0.32, 1.2, 0.6, 1] } },
-    exit: { y: 14, opacity: 0, filter: 'blur(8px)', transition: reduceMotion ? { duration: 0.01 } : { duration: 0.25, ease: [0.65, 0, 1, 1] } }
+    hidden: reduceMotion ? { y: 0, opacity: 1 } : { y: 22, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: reduceMotion ? { duration: 0.01 } : { duration: 0.6, ease: [0.32, 1.2, 0.6, 1] as const } },
+    exit: { y: 14, opacity: 0, transition: reduceMotion ? { duration: 0.01 } : { duration: 0.25, ease: [0.65, 0, 1, 1] as const } }
   };
 
   return (

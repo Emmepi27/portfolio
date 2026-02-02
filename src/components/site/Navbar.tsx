@@ -3,9 +3,9 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AnimatePresence, motion, useMotionValue, useReducedMotion, useSpring, type Variants } from 'framer-motion';
+import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import NavbarMobile from '@/components/site/NavbarMobile';
+import NavbarMobile from './NavbarMobile';
 
 type NavItemKey = 'home' | 'work' | 'services' | 'about' | 'contact';
 
@@ -57,80 +57,27 @@ function BrandMark() {
   );
 }
 
-interface MagneticLinkProps {
+interface NavLinkProps {
   href: string;
   label: string;
   isActive: boolean;
-  disabled?: boolean;
 }
 
-function MagneticLink({ href, label, isActive, disabled }: MagneticLinkProps) {
-  const ref = React.useRef<HTMLAnchorElement>(null);
-  const [hovered, setHovered] = React.useState(false);
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 200, damping: 18, mass: 0.1 });
-  const springY = useSpring(y, { stiffness: 200, damping: 18, mass: 0.1 });
-
-  const onMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    if (disabled || !ref.current) return;
-    const r = ref.current.getBoundingClientRect();
-    const cx = r.left + r.width / 2;
-    const cy = r.top + r.height / 2;
-    const dx = (e.clientX - cx) * 0.25;
-    const dy = (e.clientY - cy) * 0.25;
-    x.set(Math.max(-8, Math.min(8, dx)));
-    y.set(Math.max(-8, Math.min(8, dy)));
-  };
-
-  const onLeave = () => {
-    x.set(0);
-    y.set(0);
-    setHovered(false);
-  };
-
+function NavLink({ href, label, isActive }: NavLinkProps) {
   return (
     <Link
-      ref={ref}
       href={href}
-      onMouseMove={onMove}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={onLeave}
       aria-current={isActive ? 'page' : undefined}
-      className="relative shrink-0"
+      className={cn(
+        'relative shrink-0 block px-2 py-2 text-[0.6875rem] uppercase font-medium',
+        'tracking-[0.28em] transition-colors duration-300',
+        'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:rounded-full',
+        'after:bg-gradient-to-r after:from-transparent after:via-white/35 after:to-transparent',
+        'after:scale-x-0 after:origin-center after:transition-transform after:duration-250 hover:after:scale-x-100',
+        isActive ? 'text-white' : 'text-neutral-400 hover:text-neutral-100'
+      )}
     >
-      <motion.span
-        style={disabled ? undefined : { x: springX, y: springY }}
-        className={cn(
-          'relative block px-2 py-2 text-[0.6875rem] uppercase font-medium',
-          'tracking-[0.28em] transition-colors duration-300',
-          isActive ? 'text-white' : 'text-neutral-400 hover:text-neutral-100'
-        )}
-      >
-        {label}
-
-        {/* subtle underline/glow */}
-        <AnimatePresence>
-          {!isActive && hovered && (
-            <motion.span
-              initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: 1, opacity: 1 }}
-              exit={{ scaleX: 0, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="absolute -bottom-1 left-0 right-0 h-px rounded-full bg-gradient-to-r from-transparent via-white/35 to-transparent"
-              aria-hidden="true"
-            />
-          )}
-        </AnimatePresence>
-
-        <motion.span
-          className="absolute -inset-x-3 -inset-y-2 -z-10 rounded-full blur-xl"
-          animate={{ backgroundColor: hovered ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0)' }}
-          transition={{ duration: 0.35 }}
-          aria-hidden="true"
-        />
-      </motion.span>
+      {label}
     </Link>
   );
 }
@@ -201,7 +148,7 @@ export default function Navbar() {
 
   const headerVariants: Variants = {
     hidden: reduceMotion ? { y: 0, opacity: 1 } : { y: -24, opacity: 0 },
-    show: reduceMotion ? { y: 0, opacity: 1 } : { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] } }
+    show: reduceMotion ? { y: 0, opacity: 1 } : { y: 0, opacity: 1, transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] as const } }
   };
 
   return (
@@ -218,7 +165,7 @@ export default function Navbar() {
             paddingTop: scrolled ? 'calc(0.5rem + env(safe-area-inset-top, 0px))' : 'calc(0.75rem + env(safe-area-inset-top, 0px))',
             paddingBottom: scrolled ? '1rem' : '1.5rem'
           }}
-          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+          transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] as const }}
           className="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8"
         >
           <motion.div
@@ -258,7 +205,7 @@ export default function Navbar() {
                   const isActive = activeKey === item.key;
                   return (
                     <React.Fragment key={item.key}>
-                      <MagneticLink href={item.href} label={item.label} isActive={isActive} disabled={!!reduceMotion} />
+                      <NavLink href={item.href} label={item.label} isActive={isActive} />
                       {idx < NAV_ITEMS.length - 1 && (
                         <div
                           className="h-4 w-px shrink-0 bg-gradient-to-b from-transparent via-white/12 to-transparent mx-1"
