@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { projects } from "@/content/projects";
 import { site } from "@/config/site";
+import HeroPortrait from "@/components/home/HeroPortrait";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -15,42 +16,48 @@ export default function HomePage() {
 
   return (
     <div className="space-y-14">
-      <section className="pt-6" aria-labelledby="hero-heading">
-        <p className="text-xs tracking-[0.25em] text-amber-300/80">
-          WEB · GIS · POSTGIS · SEO
-        </p>
+      <section className="pt-6 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start" aria-labelledby="hero-heading">
+        <div className="min-w-0 lg:col-span-7">
+          <p className="text-xs tracking-[0.25em] text-amber-300/80">
+            WEB · GIS · POSTGIS · SEO
+          </p>
 
-        <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
-          Sviluppo GIS/PostGIS e web-app che
-          <span className="text-amber-300"> producono valore.</span>
-        </h1>
+          <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
+            Sviluppo GIS/PostGIS e web-app che
+            <span className="text-amber-300"> producono valore.</span>
+          </h1>
 
-        <p className="mt-6 max-w-2xl text-zinc-300">
-          Sviluppo siti e web-app con focus su performance, SEO e manutenzione.
-          Specializzazione in dati geografici e applicazioni GIS/PostGIS senza perdere UX.
-          Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e la <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">storia</Link>.
-        </p>
+          <p className="mt-6 max-w-2xl text-zinc-300">
+            Sviluppo siti e web-app con focus su performance, SEO e manutenzione.
+            Specializzazione in dati geografici e applicazioni GIS/PostGIS senza perdere UX.
+            Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e la <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">storia</Link>.
+          </p>
 
-        <div className="mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/work"
-            className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Esplora i case studies
-          </Link>
-          <Link
-            href="/contact"
-            className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Parliamo
-          </Link>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <Link
+              href="/work"
+              className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              Esplora i case studies
+            </Link>
+            <Link
+              href="/contact"
+              className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              Parliamo
+            </Link>
+          </div>
+
+          <div className="mt-10 flex flex-wrap gap-2" role="list" aria-label="Proof">
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">CWV focus</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">MVP 2–6 settimane</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">PostGIS · GeoDjango</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">SEO tecnico</span>
+          </div>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-2" role="list" aria-label="Proof">
-          <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">CWV focus</span>
-          <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">MVP 2–6 settimane</span>
-          <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">PostGIS · GeoDjango</span>
-          <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">SEO tecnico</span>
+        <div className="mt-8 min-w-0 lg:col-span-5 lg:mt-0 lg:flex lg:justify-end">
+          <HeroPortrait />
         </div>
       </section>
 
