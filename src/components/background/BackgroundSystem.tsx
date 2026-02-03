@@ -248,13 +248,6 @@ export default function BackgroundSystem() {
       else stopLoop();
     };
 
-    syncRunningRef.current = syncRunning;
-
-    const onVis = () => syncRunning();
-    document.addEventListener("visibilitychange", onVis);
-
-    syncRunning();
-
     const draw = (tSec: number) => {
       const cfg = cfgRef.current;
       const den = densityRef.current;
@@ -378,6 +371,11 @@ export default function BackgroundSystem() {
         if (p.y > h * 0.75 + my) p.y = -my;
       }
     };
+
+    syncRunningRef.current = syncRunning;
+    const onVis = () => syncRunning();
+    document.addEventListener("visibilitychange", onVis);
+    syncRunning();
 
     return () => {
       syncRunningRef.current = null;
