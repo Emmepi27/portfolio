@@ -22,6 +22,9 @@ export type RuntimeState = PolicyState & {
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";
 
+let cachedMqReduced: MediaQueryList | null = null;
+let cachedMqCoarse: MediaQueryList | null = null;
+
 const MOBILE_DPR_CAP = 1.5;
 const MOBILE_FPS = 30;
 const DESKTOP_DPR_CAP = 2;
@@ -64,7 +67,8 @@ function applyZoneFps(base: PolicyState, zone: BgZone): PolicyState {
 
 function getReducedMotion(): boolean {
   if (typeof window === "undefined") return true;
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches;
+  if (!cachedMqReduced) cachedMqReduced = window.matchMedia(REDUCED_MOTION_QUERY);
+  return cachedMqReduced.matches;
 }
 
 function getSaveData(): boolean {
@@ -86,7 +90,8 @@ function getHardwareConcurrency(): number {
 
 function getCoarsePointer(): boolean {
   if (typeof window === "undefined") return true;
-  return window.matchMedia(COARSE_POINTER_QUERY).matches;
+  if (!cachedMqCoarse) cachedMqCoarse = window.matchMedia(COARSE_POINTER_QUERY);
+  return cachedMqCoarse.matches;
 }
 
 export function computePolicyState(): PolicyState {

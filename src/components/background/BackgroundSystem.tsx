@@ -5,6 +5,7 @@ import { useBackgroundPolicy } from "@/lib/background/policy";
 
 const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
+const RESIZE_THROTTLE_MS = 32; // max ~30fps during resize bursts
 const SCROLL_PAUSE_MS = 120;
 
 type Config = {
@@ -112,7 +113,7 @@ function noise1(x: number, seedI: number) {
 type Line = { y0: number; seed: number; phase: number };
 type Node = { x: number; y: number; vx: number; vy: number; r: number; seed: number };
 
-export default function BackgroundSystem() {
+function BackgroundSystem() {
   const { profile, fps, dpr, running, density } = useBackgroundPolicy();
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -130,6 +131,7 @@ export default function BackgroundSystem() {
 
   const linesRef = React.useRef<Line[]>([]);
   const nodesRef = React.useRef<Node[]>([]);
+  const nodePositionsRef = React.useRef<Float32Array | null>(null);
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
   const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
@@ -197,6 +199,7 @@ export default function BackgroundSystem() {
     let w = 0;
     let h = 0;
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
+    let roThrottleTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const initScene = () => {
       const cfg = cfgRef.current;
@@ -294,7 +297,14 @@ export default function BackgroundSystem() {
       }, delay);
     };
 
-    const resizeObs = new ResizeObserver(onResize);
+    const onResizeThrottled = () => {
+      if (roThrottleTimeout !== null) return;
+      roThrottleTimeout = setTimeout(() => {
+        roThrottleTimeout = null;
+        onResize();
+      }, RESIZE_THROTTLE_MS);
+    };
+    const resizeObs = new ResizeObserver(onResizeThrottled);
     resizeObs.observe(canvas.parentElement ?? canvas);
     setSize();
 
@@ -359,33 +369,50 @@ export default function BackgroundSystem() {
       }
       ctx.restore();
 
-      // drifting nodes (tiny glows) — sprite once, drawImage per frame
+      // drifting nodes: pre-compute positions, batch trails, then glows
       const sprite = glowSpriteRef.current;
       if (sprite && nodesN > 0) {
+        const nodes = nodesRef.current;
+        const needed = nodesN * 2;
+        let positions = nodePositionsRef.current;
+        if (!positions || positions.length < needed) {
+          positions = new Float32Array(Math.max(needed, (cfgRef.current.nodes || 20) * 2));
+          nodePositionsRef.current = positions;
+        }
+        for (let i = 0; i < nodesN; i++) {
+          const p = nodes[i];
+          if (!p) break;
+          const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
+          positions[i * 2] = p.x + wob * 6;
+          positions[i * 2 + 1] = p.y + wob * 4;
+        }
+
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
-        ctx.globalAlpha = cfg.nodeAlpha;
 
-        const size = 64;
+        // batched trails: single path
+        ctx.globalAlpha = cfg.nodeAlpha * 0.5;
+        ctx.strokeStyle = "rgba(80,200,220,0.3)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
         for (let i = 0; i < nodesN; i++) {
-          const p = nodesRef.current[i];
+          const p = nodes[i];
           if (!p) break;
-
-          const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
-          const px = p.x + wob * 6;
-          const py = p.y + wob * 4;
-
-          ctx.save();
-          ctx.globalAlpha = cfg.nodeAlpha * 0.5;
-          ctx.strokeStyle = "rgba(80,200,220,0.3)";
-          ctx.lineWidth = 1;
-          ctx.beginPath();
+          const px = positions[i * 2];
+          const py = positions[i * 2 + 1];
           ctx.moveTo(px, py);
           ctx.lineTo(px - p.vx * 5, py - p.vy * 5);
-          ctx.stroke();
-          ctx.restore();
+        }
+        ctx.stroke();
 
-          ctx.drawImage(sprite, px - size / 2, py - size / 2, size, size);
+        // glows using pre-computed positions
+        ctx.globalAlpha = cfg.nodeAlpha;
+        const size = 64;
+        const half = size / 2;
+        for (let i = 0; i < nodesN; i++) {
+          const px = positions[i * 2];
+          const py = positions[i * 2 + 1];
+          ctx.drawImage(sprite, px - half, py - half, size, size);
         }
         ctx.restore();
       }
@@ -458,6 +485,7 @@ export default function BackgroundSystem() {
       document.removeEventListener("visibilitychange", onVis);
       stopLoop();
       resizeObs.disconnect();
+      if (roThrottleTimeout) clearTimeout(roThrottleTimeout);
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
   }, [profile, dpr]);
@@ -490,3 +518,5 @@ export default function BackgroundSystem() {
     </div>
   );
 }
+
+export default React.memo(BackgroundSystem);
