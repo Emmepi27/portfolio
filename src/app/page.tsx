@@ -6,7 +6,7 @@ import ProofGrid from "@/components/proof/proof-grid";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: { absolute: "Manuel Pammer — Web Engineer GIS/PostGIS, Next.js e GeoDjango" },
+  title: { absolute: "Manuel Michael Pammer — Web Engineer GIS/PostGIS, Next.js e GeoDjango" },
   description:
     "Web Engineer specializzato in GIS/PostGIS, Next.js e GeoDjango. Applicazioni data-intensive, mappe e database geografici. Performance, SEO e MVP in 2–6 settimane.",
   alternates: { canonical: new URL(site.url) },

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { site } from "@/config/site";
 
 export const metadata = {
-  title: "About Manuel Pammer — Metodologia & Stack (React/Next.js)",
+  title: "About Manuel Michael Pammer — Metodologia & Stack (React/Next.js)",
   description:
     "Full-stack frontend-heavy: vincoli espliciti, validazione misurabile (CWV, SEO). Proof: #1 Google locale, e-commerce Shopify IT/EN, delivery rapida.",
   alternates: { canonical: new URL("/about", site.url).href },

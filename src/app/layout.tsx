@@ -16,7 +16,7 @@ export const viewport = { width: "device-width", initialScale: 1 };
 
 export const metadata: Metadata = {
   metadataBase: new URL(site.url),
-  title: { default: site.name, template: "%s · Manuel Pammer" },
+  title: { default: site.name, template: `%s · ${site.person.name}` },
   description: site.description,
   openGraph: {
     title: site.name,

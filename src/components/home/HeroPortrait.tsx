@@ -10,7 +10,7 @@ export default function HeroPortrait() {
         <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
           <Image
             src={PORTRAIT_SRC}
-            alt="Manuel Pammer, Web Engineer"
+            alt="Manuel Michael Pammer, Web Engineer"
             width={96}
             height={96}
             sizes="96px"
@@ -29,7 +29,7 @@ export default function HeroPortrait() {
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_70%_20%,rgba(252,211,77,0.08),transparent)]" aria-hidden />
           <Image
             src={PORTRAIT_SRC}
-            alt="Manuel Pammer, Web Engineer"
+            alt="Manuel Michael Pammer, Web Engineer"
             fill
             sizes="(min-width: 1024px) 420px, 0px"
             className="object-cover"
