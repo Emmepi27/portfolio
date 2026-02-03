@@ -10,6 +10,10 @@ NEXT_PUBLIC_SITE_URL=https://yourdomain.com
 
 This ensures correct absolute URLs in metadata, canonical tags, sitemap, and robots.txt. The build will fail in production if this variable is not set.
 
+### Background System: policy + zones + perf budget
+
+The animated canvas background is **policy-driven** (not effect-driven): device/profile (reduced-motion, save-data, memory, viewport) sets FPS/DPR; visible **zones** (hero, selection, main, footer) set density and zone-specific FPS caps. Scroll and visibility only update zone/visibility; base policy is recomputed only on resize/matchMedia. Toggle `?bg=off` to disable the background, `?bg=debug` to show zone/fps/dpr/density/profile in the corner.
+
 ## Getting Started
 
 First, run the development server:

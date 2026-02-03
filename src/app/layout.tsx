@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Manrope, Bodoni_Moda } from "next/font/google";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { site } from "@/config/site";
@@ -63,7 +64,9 @@ export default function RootLayout({
           className="fixed inset-0 -z-10 overflow-hidden background-fallback"
           aria-hidden="true"
         >
-          <BackgroundSystemClient />
+          <Suspense fallback={null}>
+            <BackgroundSystemClient />
+          </Suspense>
         </div>
         <JsonLd data={webSiteJsonLd} />
         <JsonLd data={personJsonLd} />
