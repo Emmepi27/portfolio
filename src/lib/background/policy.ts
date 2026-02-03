@@ -15,17 +15,13 @@ export type PolicyState = {
 export type RuntimeState = PolicyState & {
   visible: boolean;
   zone: BgZone;
-  density: number; // 0..1 (quanto disegnare)
-  running: boolean; // loop on/off
+  density: number;
+  running: boolean;
 };
 
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
 const COARSE_POINTER_QUERY = "(pointer: coarse)";
 
-// ============================================================================
-// OPTIMIZATION: Cache MediaQueryList objects to avoid re-creation on every call
-// Impact: Eliminates ~120 allocations/sec during scroll on high-refresh displays
-// ============================================================================
 let cachedMqReduced: MediaQueryList | null = null;
 let cachedMqCoarse: MediaQueryList | null = null;
 
@@ -38,24 +34,18 @@ const LOW_END_DPR = 1;
 const OFF_FPS = 0;
 const OFF_DPR = 1;
 
-// ============================================================================
-// IO Throttle: Prevent commit spam during fast scroll (ProMotion displays)
-// ============================================================================
-const IO_THROTTLE_MS = 32; // max ~30fps for zone detection
+const IO_THROTTLE_MS = 32;
+const ZONE_SWITCH_HYSTERESIS = 0.15;
 
 // ============================================================================
-// Zone Hysteresis: Prevent flip-flop when scrolling near zone boundaries
-// Requires zone to be X% "more visible" before switching
+// FIX SCATTI: Density costante = no GC spikes durante scroll
 // ============================================================================
-const ZONE_SWITCH_HYSTERESIS = 0.15; // 15% advantage needed to switch
-
-// --- Zone tuning ---
 const ZONE_DENSITY: Record<BgZone, number> = {
   hero: 1,
-  selection: 0.75, // Increased from 0.5 for better continuity
-  main: 0.85, // Increased from 0.75 for richer background
-  footer: 0.3, // Was 0 - now shows subtle animation
-  "menu-overlay": 0,
+  selection: 1,    // ✅ Era 0.75
+  main: 1,         // ✅ Era 0.85
+  footer: 1,       // ✅ Era 0.3
+  "menu-overlay": 0.5,
 };
 
 const ZONE_PRIORITY: Record<BgZone, number> = {
@@ -66,11 +56,14 @@ const ZONE_PRIORITY: Record<BgZone, number> = {
   main: 0,
 };
 
+// ============================================================================
+// FIX SCATTI: FPS ridotto su mobile, ma costante per zone
+// ============================================================================
 const ZONE_FPS_CAP: Record<BgZone, number> = {
   hero: Number.POSITIVE_INFINITY,
-  selection: 20, // Increased from 15 for smoother transition
-  main: 15, // Increased from 10 for better main content experience
-  footer: 10, // Was 0 - now animates subtly
+  selection: Number.POSITIVE_INFINITY, // ✅ Era 20
+  main: Number.POSITIVE_INFINITY,      // ✅ Era 15
+  footer: Number.POSITIVE_INFINITY,    // ✅ Era 10
   "menu-overlay": 0,
 };
 
@@ -148,10 +141,6 @@ export function computePolicyState(): PolicyState {
   };
 }
 
-// ============================================================================
-// OPTIMIZATION: Zone picking with hysteresis to prevent flip-flop
-// Previous zone gets a "boost" to prevent rapid switching near boundaries
-// ============================================================================
 function pickBestZone(
   ratios: Partial<Record<BgZone, number>>,
   menuOpen: boolean,
@@ -168,7 +157,6 @@ function pickBestZone(
     const r = ratios[z] ?? 0;
     let score = r * 10 + ZONE_PRIORITY[z] * 0.01;
 
-    // Apply hysteresis: current zone gets a boost
     if (z === currentZone) {
       score += ZONE_SWITCH_HYSTERESIS;
     }
@@ -180,7 +168,7 @@ function pickBestZone(
   }
 
   const maxRatio = Math.max(...candidates.map((z) => ratios[z] ?? 0));
-  if (maxRatio < 0.05) return "main"; // fallback
+  if (maxRatio < 0.05) return "main";
 
   return best;
 }
@@ -243,7 +231,6 @@ export function useBackgroundPolicy(): RuntimeState {
       const base = baseRef.current;
       const visible = document.visibilityState === "visible";
 
-      // Pass current zone for hysteresis
       const zone = pickBestZone(
         ratiosRef.current,
         menuOpenRef.current,
@@ -278,16 +265,9 @@ export function useBackgroundPolicy(): RuntimeState {
       setState({ ...tuned, visible, zone, density, running });
     };
 
-    // ========================================================================
-    // OPTIMIZATION: Throttled commit scheduling for IO events
-    // Prevents excessive state updates during fast scroll
-    // ========================================================================
     const scheduleCommit = () => {
       if (rafQueued) return;
-
-      // Throttle IO-triggered commits (but not base updates like resize)
       if (ioThrottleTimeout) return;
-
       rafQueued = window.requestAnimationFrame(commit);
     };
 
@@ -301,10 +281,9 @@ export function useBackgroundPolicy(): RuntimeState {
       }, IO_THROTTLE_MS);
     };
 
-    // --- base signals (recompute base, immediate commit) ---
     const onBaseUpdate = () => {
       baseRef.current = computePolicyState();
-      scheduleCommit(); // immediate, no throttle
+      scheduleCommit();
     };
 
     window.addEventListener("resize", onBaseUpdate);
@@ -315,10 +294,6 @@ export function useBackgroundPolicy(): RuntimeState {
     mqReduced.addEventListener("change", onBaseUpdate);
     mqCoarse.addEventListener("change", onBaseUpdate);
 
-    // ========================================================================
-    // OPTIMIZATION: IntersectionObserver with throttled commit
-    // Scroll events can fire at 120Hz on ProMotion displays
-    // ========================================================================
     const io = new IntersectionObserver(
       (entries) => {
         for (const e of entries) {
@@ -327,7 +302,7 @@ export function useBackgroundPolicy(): RuntimeState {
           if (!z) continue;
           ratiosRef.current[z] = e.isIntersecting ? e.intersectionRatio : 0;
         }
-        scheduleCommitThrottled(); // throttled for IO
+        scheduleCommitThrottled();
       },
       { threshold: [0, 0.25, 0.5, 0.75, 1] }
     );
@@ -341,14 +316,9 @@ export function useBackgroundPolicy(): RuntimeState {
     observeZone("selection");
     observeZone("footer");
 
-    // ========================================================================
-    // OPTIMIZATION: Debounced MutationObserver for menu overlay
-    // Scoped to nav/header to reduce DOM observation overhead
-    // ========================================================================
     let menuRefreshTimeout = 0;
 
     const refreshMenu = () => {
-      // Debounce: menu opens/closes are rare, no need for instant detection
       if (menuRefreshTimeout) clearTimeout(menuRefreshTimeout);
 
       menuRefreshTimeout = window.setTimeout(() => {
@@ -357,12 +327,11 @@ export function useBackgroundPolicy(): RuntimeState {
           document.querySelector(`[data-bg-zone="menu-overlay"]`)
         );
 
-        // Only commit if menu state actually changed
         if (menuNow !== menuOpenRef.current) {
           menuOpenRef.current = menuNow;
-          scheduleCommit(); // immediate for menu (UX critical)
+          scheduleCommit();
         }
-      }, 50); // 50ms debounce
+      }, 50);
     };
 
     refreshMenu();
@@ -373,7 +342,6 @@ export function useBackgroundPolicy(): RuntimeState {
       document.body;
     mo.observe(navTarget, { childList: true, subtree: true });
 
-    // first commit
     scheduleCommit();
 
     return () => {
@@ -387,7 +355,6 @@ export function useBackgroundPolicy(): RuntimeState {
       if (ioThrottleTimeout) clearTimeout(ioThrottleTimeout);
       if (menuRefreshTimeout) clearTimeout(menuRefreshTimeout);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return state;

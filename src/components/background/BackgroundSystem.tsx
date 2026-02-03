@@ -5,21 +5,21 @@ import { useBackgroundPolicy } from "@/lib/background/policy";
 
 const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
-const RESIZE_THROTTLE_MS = 32; // max ~30fps during resize bursts
+const RESIZE_THROTTLE_MS = 32;
 
 type Config = {
   lines: number;
   segments: number;
   lineAlpha: number;
   lineWidth: number;
-  amp: number; // px
-  freq: number; // noise frequency
-  speed: number; // time speed
+  amp: number;
+  freq: number;
+  speed: number;
   dots: number;
   dotAlpha: number;
   nodes: number;
   nodeAlpha: number;
-  fadeStart: number; // 0..1
+  fadeStart: number;
 };
 
 function configFor(profile: string): Config {
@@ -87,7 +87,6 @@ function configFor(profile: string): Config {
   }
 }
 
-// --- integer hash + noise (no sin, fast) ---
 function hash1i(n: number) {
   let x = n | 0;
   x = Math.imul(x ^ 0x9e3779b9, 0x85ebca6b);
@@ -132,22 +131,24 @@ function BackgroundSystem() {
   const frameIntervalRef = React.useRef(1000 / 60);
   const lastFrameRef = React.useRef(0);
 
-  const timeRef = React.useRef(0); // seconds
+  const timeRef = React.useRef(0);
   const cfgRef = React.useRef<Config>(configFor(profile));
   const densityRef = React.useRef(density);
 
   const linesRef = React.useRef<Line[]>([]);
   const nodesRef = React.useRef<Node[]>([]);
-  const nodePositionsRef = React.useRef<Float32Array>(new Float32Array(48)); // max 24 nodes × 2
+  const nodePositionsRef = React.useRef<Float32Array>(new Float32Array(48));
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
   const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
 
+  // ============================================================================
+  // FIX SCATTI: Cache line gradient (created once, not every frame)
+  // ============================================================================
+  const lineGradientRef = React.useRef<CanvasGradient | null>(null);
+
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
-
-  // Gradient animation state
-  const gradientPhaseRef = React.useRef(0);
 
   React.useEffect(() => {
     densityRef.current = density;
@@ -191,7 +192,7 @@ function BackgroundSystem() {
       if (glowSpriteRef.current) return;
 
       const s = document.createElement("canvas");
-      const size = 80; // bigger glow
+      const size = 80;
       s.width = size;
       s.height = size;
 
@@ -200,7 +201,7 @@ function BackgroundSystem() {
 
       const r = size / 2;
       const g = sctx.createRadialGradient(r, r, 0, r, r, r);
-      g.addColorStop(0, "rgba(120, 220, 240, 0.5)"); // cyan core
+      g.addColorStop(0, "rgba(120, 220, 240, 0.5)");
       g.addColorStop(0.4, "rgba(80, 200, 220, 0.25)");
       g.addColorStop(1, "rgba(80, 200, 220, 0)");
       sctx.fillStyle = g;
@@ -217,19 +218,17 @@ function BackgroundSystem() {
     const initScene = () => {
       const cfg = cfgRef.current;
 
-      // lines: evenly distributed across full height
       linesRef.current = Array.from({ length: cfg.lines }, (_, i) => {
         const t = cfg.lines <= 1 ? 0 : i / (cfg.lines - 1);
-        const y0 = Math.round(t * h * 0.85 + h * 0.05); // full range
+        const y0 = Math.round(t * h * 0.85 + h * 0.05);
         return { y0, seed: (10000 + i * 1723) | 0, phase: i * 0.37 };
       });
 
-      // nodes: distributed across full viewport
       nodesRef.current = Array.from({ length: cfg.nodes }, (_, i) => {
         const seed = (10000 + i * 137) | 0;
         const x = hash1i(seed + 1) * w;
-        const y = hash1i(seed + 2) * h; // full height
-        const vx = (hash1i(seed + 3) - 0.5) * 12; // slightly faster
+        const y = hash1i(seed + 2) * h;
+        const vx = (hash1i(seed + 3) - 0.5) * 12;
         const vy = (hash1i(seed + 4) - 0.5) * 8;
         const r = 2 + hash1i(seed + 5) * 3;
         return { x, y, vx, vy, r, seed };
@@ -254,7 +253,15 @@ function BackgroundSystem() {
       canvas.height = Math.max(1, Math.floor(h * scale));
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-      // cache fade gradient for readability
+      // ========================================================================
+      // FIX SCATTI: Cache line gradient on resize (not every frame)
+      // ========================================================================
+      const lineGradient = ctx.createLinearGradient(0, 0, w, 0);
+      lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
+      lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
+      lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
+      lineGradientRef.current = lineGradient;
+
       const cfg = cfgRef.current;
       const y0 = h * cfg.fadeStart;
       const g = ctx.createLinearGradient(0, y0, 0, h);
@@ -287,7 +294,7 @@ function BackgroundSystem() {
         for (let i = 0; i < cfg.dots; i++) {
           const seed = (5000 + i * 91) | 0;
           const x = hash1i(seed + 1) * w;
-          const y = hash1i(seed + 2) * h; // full height dots
+          const y = hash1i(seed + 2) * h;
           const r = 0.7 + hash1i(seed + 3) * 1;
           lctx.moveTo(x + r, y);
           lctx.arc(x, y, r, 0, Math.PI * 2);
@@ -345,7 +352,6 @@ function BackgroundSystem() {
       const linesN = Math.floor(cfg.lines * den);
       const nodesN = Math.floor(cfg.nodes * den);
 
-      // Static background
       const layer = staticLayerRef.current;
       if (layer) {
         ctx.drawImage(layer, 0, 0, w, h);
@@ -354,50 +360,46 @@ function BackgroundSystem() {
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Animated lines (flow)
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.lineWidth = cfg.lineWidth;
+      // ========================================================================
+      // FIX SCATTI: Use cached gradient instead of creating new one
+      // ========================================================================
+      const lineGradient = lineGradientRef.current;
+      if (lineGradient) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.lineWidth = cfg.lineWidth;
 
-      // Breathing pulse effect (slower, more subtle)
-      const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.4);
-      ctx.globalAlpha = cfg.lineAlpha * (0.75 + 0.25 * pulse);
+        const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.4);
+        ctx.globalAlpha = cfg.lineAlpha * (0.75 + 0.25 * pulse);
+        ctx.strokeStyle = lineGradient; // ✅ Cached gradient
 
-      // Multi-color gradient stroke
-      const lineGradient = ctx.createLinearGradient(0, 0, w, 0);
-      lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
-      lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
-      lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
-      ctx.strokeStyle = lineGradient;
+        const seg = Math.max(10, cfg.segments);
+        const dx = w / seg;
 
-      const seg = Math.max(10, cfg.segments);
-      const dx = w / seg;
+        for (let li = 0; li < linesN; li++) {
+          const ln = linesRef.current[li];
+          if (!ln) break;
 
-      for (let li = 0; li < linesN; li++) {
-        const ln = linesRef.current[li];
-        if (!ln) break;
+          ctx.beginPath();
+          for (let i = 0; i <= seg; i++) {
+            const x = i * dx;
+            const nx = x * cfg.freq + tSec * cfg.speed + ln.phase;
+            const n = noise1(nx, ln.seed);
+            const y = ln.y0 + (n - 0.5) * 2 * cfg.amp;
 
-        ctx.beginPath();
-        for (let i = 0; i <= seg; i++) {
-          const x = i * dx;
-          const nx = x * cfg.freq + tSec * cfg.speed + ln.phase;
-          const n = noise1(nx, ln.seed);
-          const y = ln.y0 + (n - 0.5) * 2 * cfg.amp;
-
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
+            if (i === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+          }
+          ctx.stroke();
         }
-        ctx.stroke();
+        ctx.restore();
       }
-      ctx.restore();
 
-      // Drifting nodes with trails
       const sprite = glowSpriteRef.current;
       if (sprite && nodesN > 0) {
         const nodes = nodesRef.current;
         const positions = nodePositionsRef.current;
 
-        // Pre-compute positions (zero allocation)
         for (let i = 0; i < nodesN; i++) {
           const p = nodes[i];
           if (!p) break;
@@ -410,7 +412,6 @@ function BackgroundSystem() {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        // Trails (batched single path)
         ctx.globalAlpha = cfg.nodeAlpha * 0.6;
         ctx.strokeStyle = "rgba(100, 210, 230, 0.4)";
         ctx.lineWidth = 1.5;
@@ -429,7 +430,6 @@ function BackgroundSystem() {
         }
         ctx.stroke();
 
-        // Glows (using sprite)
         ctx.globalAlpha = cfg.nodeAlpha;
         const size = 80;
         const half = size / 2;
@@ -443,7 +443,6 @@ function BackgroundSystem() {
         ctx.restore();
       }
 
-      // Readability fade (bottom gradient)
       const fg = fadeGradientRef.current;
       if (fg) {
         ctx.save();
@@ -465,15 +464,10 @@ function BackgroundSystem() {
 
       if (w <= 0 || h <= 0) return;
 
-      // Time progression
       timeRef.current += interval / 1000;
-
-      // Update gradient phase for CSS overlay
-      gradientPhaseRef.current = (gradientPhaseRef.current + 0.3) % 100;
 
       draw(timeRef.current);
 
-      // Update node physics
       const cfg = cfgRef.current;
       const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
@@ -485,7 +479,6 @@ function BackgroundSystem() {
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // Wrap at edges (with margin)
         const mx = 60;
         const my = 60;
         if (p.x < -mx) p.x = w + mx;
@@ -520,6 +513,9 @@ function BackgroundSystem() {
     );
   }
 
+  // ============================================================================
+  // FIX SCATTI: Static gradient (no Math.sin animation = no DOM re-layout)
+  // ============================================================================
   return (
     <div className="absolute inset-0 pointer-events-none">
       <canvas
@@ -528,11 +524,11 @@ function BackgroundSystem() {
         style={{ pointerEvents: "none" }}
         aria-hidden="true"
       />
-      {/* Dynamic animated gradient overlay */}
       <div
-        className="absolute inset-0 opacity-25 transition-opacity duration-1000"
+        className="absolute inset-0 opacity-25"
         style={{
-          background: `radial-gradient(circle at ${28 + Math.sin(gradientPhaseRef.current * 0.02) * 8}% ${18 + Math.cos(gradientPhaseRef.current * 0.015) * 6}%, rgba(100, 210, 230, 0.18) 0%, rgba(80, 200, 220, 0.08) 40%, transparent 70%)`,
+          background:
+            "radial-gradient(circle at 30% 20%, rgba(100, 210, 230, 0.18) 0%, rgba(80, 200, 220, 0.08) 40%, transparent 70%)",
         }}
       />
     </div>
