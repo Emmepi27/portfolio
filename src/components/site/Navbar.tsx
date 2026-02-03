@@ -170,7 +170,7 @@ export default function Navbar() {
             paddingBottom: scrolled ? '1rem' : '1.5rem'
           }}
           transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] as const }}
-          className="mx-auto max-w-[96rem] pl-4 pr-[max(1.5rem,env(safe-area-inset-right,0px))] sm:pl-6 lg:px-8"
+          className="mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8"
         >
           <motion.div
             animate={{
@@ -243,7 +243,7 @@ export default function Navbar() {
         className="lg:hidden fixed z-50"
         style={{
           top: 'calc(1.5rem + env(safe-area-inset-top, 0px))',
-          right: 'max(1.5rem, env(safe-area-inset-right, 0px))',
+          right: 'max(2rem, calc(1rem + env(safe-area-inset-right, 0px)))',
         }}
       >
         <button
