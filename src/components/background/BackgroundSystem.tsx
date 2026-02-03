@@ -7,8 +7,9 @@ const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
 const RESIZE_THROTTLE_MS = 32;
 
-// Mobile browsers often change viewport height on first scroll (URL bar/toolbars).
+// Mobile browsers often change viewport height during scroll (URL bar/toolbars).
 // We resize the canvas buffer, but we avoid rebuilding the scene unless the change is "real".
+// NOTE: we also gate resizes while scrolling to prevent visible snapping.
 const SCENE_REBUILD_HEIGHT_PX = 120;
 
 type Config = {
@@ -133,9 +134,12 @@ function BackgroundSystem() {
 
   const lastSizeRef = React.useRef({ w: 0, h: 0 });
 
-  // Scene size is "stable layout size" for lines/nodes.
-  // It only updates on first run or on "real" resizes (rotation, big height changes, width changes).
+  // Scene size is a "stable layout size" for lines/nodes.
+  // It updates only on first run or on real resizes (rotation / width change / big height change).
   const sceneSizeRef = React.useRef({ w: 0, h: 0 });
+
+  // Force a scene rebuild on profile change (mobile/desktop/low-end).
+  const forceRebuildRef = React.useRef(true);
 
   const frameIntervalRef = React.useRef(1000 / 60);
   const lastFrameRef = React.useRef(0);
@@ -165,6 +169,10 @@ function BackgroundSystem() {
     policyRunningRef.current = running;
     syncRunningRef.current?.();
   }, [running]);
+
+  React.useEffect(() => {
+    forceRebuildRef.current = true;
+  }, [profile]);
 
   React.useEffect(() => {
     mountedRef.current = true;
@@ -224,6 +232,10 @@ function BackgroundSystem() {
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     let roThrottleTimeout: ReturnType<typeof setTimeout> | null = null;
 
+    // Scroll gate: during scroll, ignore resizes (toolbar/URL bar), apply once after scroll ends.
+    let isScrolling = false;
+    let scrollEndTimeout: ReturnType<typeof setTimeout> | null = null;
+
     const initScene = () => {
       const cfg = cfgRef.current;
       const sceneW = sceneSizeRef.current.w || w;
@@ -258,7 +270,6 @@ function BackgroundSystem() {
 
       lctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-      // Fill background to avoid flash on initial draw
       lctx.fillStyle = FALLBACK_BG;
       lctx.fillRect(0, 0, w, h);
 
@@ -286,6 +297,9 @@ function BackgroundSystem() {
     const setSize = () => {
       ensureGlowSprite();
 
+      // During scroll, ignore resize events to avoid snapping (mobile URL bar/toolbars).
+      if (isScrolling && sceneSizeRef.current.w !== 0) return;
+
       const cw = Math.round(canvas.clientWidth);
       const ch = Math.round(canvas.clientHeight);
       if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h) return;
@@ -294,16 +308,23 @@ function BackgroundSystem() {
       w = cw;
       h = ch;
 
-      // Decide whether to rebuild scene (avoid URL-bar height jitter)
+      // Decide whether to rebuild scene:
+      // - first run
+      // - forced (profile change)
+      // - width change (rotation / responsive)
+      // - big height change (real resize; not toolbar jitter)
       const prevScene = sceneSizeRef.current;
       const first = prevScene.w === 0 || prevScene.h === 0;
       const sceneWidthChanged = cw !== prevScene.w;
       const sceneHeightBigChange =
         Math.abs(ch - prevScene.h) >= SCENE_REBUILD_HEIGHT_PX;
-      const rebuildScene = first || sceneWidthChanged || sceneHeightBigChange;
+
+      const rebuildScene =
+        first || forceRebuildRef.current || sceneWidthChanged || sceneHeightBigChange;
 
       if (rebuildScene) {
         sceneSizeRef.current = { w: cw, h: ch };
+        forceRebuildRef.current = false;
       }
 
       const scale = Math.min(dpr, window.devicePixelRatio || 1);
@@ -323,7 +344,7 @@ function BackgroundSystem() {
       lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
       lineGradientRef.current = lineGradient;
 
-      // Fade gradient should be based on stable scene height
+      // Fade gradient based on stable scene height
       const cfg = cfgRef.current;
       const sceneH = sceneSizeRef.current.h || h;
 
@@ -343,6 +364,17 @@ function BackgroundSystem() {
         buildStaticLayer();
       }
     };
+
+    const onScroll = () => {
+      isScrolling = true;
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      scrollEndTimeout = setTimeout(() => {
+        isScrolling = false;
+        setSize(); // apply once after scroll ends
+      }, 140);
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
 
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
@@ -391,21 +423,25 @@ function BackgroundSystem() {
 
       const sceneH = sceneSizeRef.current.h || h;
 
-      // Draw static layer (top), fill extra (if viewport got taller due to toolbars)
+      // Draw static layer:
+      // IMPORTANT: do NOT "compress" it to current viewport height (that causes visible jumps).
       const layer = staticLayerRef.current;
       if (layer) {
-        const topH = Math.min(sceneH, h);
-        ctx.drawImage(layer, 0, 0, w, topH);
-        if (h > topH) {
+        ctx.drawImage(layer, 0, 0, w, sceneH);
+        if (h > sceneH) {
           ctx.fillStyle = FALLBACK_BG;
-          ctx.fillRect(0, topH, w, h - topH);
+          ctx.fillRect(0, sceneH, w, h - sceneH);
+        } else if (h < sceneH) {
+          // If viewport is smaller (toolbar visible), just paint over the bottom cut to keep it stable.
+          ctx.fillStyle = FALLBACK_BG;
+          ctx.fillRect(0, h, w, sceneH - h);
         }
       } else {
         ctx.fillStyle = FALLBACK_BG;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Draw animated lines using cached gradient
+      // Lines
       const lineGradient = lineGradientRef.current;
       if (lineGradient) {
         ctx.save();
@@ -487,7 +523,7 @@ function BackgroundSystem() {
         ctx.restore();
       }
 
-      // Fade overlay: base it on stable scene height; fill only if visible in current viewport
+      // Fade overlay
       const fg = fadeGradientRef.current;
       if (fg) {
         ctx.save();
@@ -518,7 +554,7 @@ function BackgroundSystem() {
 
       draw(timeRef.current);
 
-      // Update nodes movement; wrap using stable scene bounds (so they don't jump on toolbar height)
+      // Update nodes movement; wrap using stable scene bounds.
       const cfg = cfgRef.current;
       const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
@@ -552,8 +588,13 @@ function BackgroundSystem() {
     return () => {
       syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
+      window.removeEventListener("scroll", onScroll);
+
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+
       stopLoop();
       resizeObs.disconnect();
+
       if (roThrottleTimeout) clearTimeout(roThrottleTimeout);
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
