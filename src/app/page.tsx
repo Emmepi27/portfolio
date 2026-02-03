@@ -50,10 +50,10 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-2" role="list" aria-label="Proof">
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">CWV focus</span>
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">MVP 2–6 settimane</span>
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">PostGIS · GeoDjango</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">Performance (Core Web Vitals)</span>
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">SEO tecnico</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">MVP in 2–6 settimane</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">WebGIS: PostGIS + GeoDjango</span>
           </div>
         </div>
 
