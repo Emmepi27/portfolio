@@ -160,6 +160,7 @@ export function useBackgroundPolicy(): RuntimeState {
 
     const ratiosRef = { current: {} as Partial<Record<BgZone, number>> };
     const menuOpenRef = { current: false };
+    const baseRef = { current: computePolicyState() };
     const lastRef: { current: { zone: BgZone; running: boolean; density: number; profile: BackgroundProfile; fps: number; dpr: number; visible: boolean } } = {
       current: { zone: "main", running: false, density: ZONE_DENSITY.main, profile: "desktop", fps: 60, dpr: 1, visible: true },
     };
@@ -168,7 +169,7 @@ export function useBackgroundPolicy(): RuntimeState {
     const commit = () => {
       rafQueued = 0;
 
-      const base = computePolicyState();
+      const base = baseRef.current;
       const visible = document.visibilityState === "visible";
 
       const zone = pickBestZone(ratiosRef.current, menuOpenRef.current);
@@ -194,8 +195,11 @@ export function useBackgroundPolicy(): RuntimeState {
       rafQueued = window.requestAnimationFrame(commit);
     };
 
-    // --- base signals ---
-    const onBaseUpdate = () => scheduleCommit();
+    // --- base signals (recompute base only here; IO/scroll uses cached baseRef) ---
+    const onBaseUpdate = () => {
+      baseRef.current = computePolicyState();
+      scheduleCommit();
+    };
     window.addEventListener("resize", onBaseUpdate);
     document.addEventListener("visibilitychange", onBaseUpdate);
 

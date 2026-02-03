@@ -87,21 +87,25 @@ function configFor(profile: string): Config {
   }
 }
 
-// --- tiny deterministic noise (no deps) ---
-const fract = (x: number) => x - Math.floor(x);
-function hash1(i: number) {
-  return fract(Math.sin(i * 127.1) * 43758.5453123);
+// --- integer hash + noise (no sin, fast) ---
+function hash1i(n: number) {
+  let x = n | 0;
+  x = Math.imul(x ^ 0x9e3779b9, 0x85ebca6b);
+  x ^= x >>> 13;
+  x = Math.imul(x, 0xc2b2ae35);
+  x ^= x >>> 16;
+  return (x >>> 0) / 4294967296;
 }
 function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
-function noise1(x: number, seed: number) {
+function noise1(x: number, seedI: number) {
   const i = Math.floor(x);
   const f = x - i;
   const u = smoothstep(f);
-  const a = hash1(i + seed * 1013.0);
-  const b = hash1(i + 1 + seed * 1013.0);
-  return a + (b - a) * u; // 0..1
+  const a = hash1i(i + seedI);
+  const b = hash1i(i + 1 + seedI);
+  return a + (b - a) * u;
 }
 
 type Line = { y0: number; seed: number; phase: number };
@@ -126,6 +130,8 @@ export default function BackgroundSystem() {
   const linesRef = React.useRef<Line[]>([]);
   const nodesRef = React.useRef<Node[]>([]);
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
+  const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
+  const glowRef = React.useRef<HTMLCanvasElement | null>(null);
 
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
@@ -162,8 +168,28 @@ export default function BackgroundSystem() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { alpha: true });
+    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
     if (!ctx) return;
+
+    const buildGlow = () => {
+      const s = 64;
+      const c = document.createElement("canvas");
+      c.width = s;
+      c.height = s;
+      const gctx = c.getContext("2d");
+      if (!gctx) return;
+      const cx = s / 2;
+
+      const grad = gctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
+      grad.addColorStop(0, "rgba(255,255,255,0.35)");
+      grad.addColorStop(1, "rgba(255,255,255,0)");
+
+      gctx.fillStyle = grad;
+      gctx.fillRect(0, 0, s, s);
+
+      glowRef.current = c;
+    };
+    buildGlow();
 
     let w = 0;
     let h = 0;
@@ -176,17 +202,17 @@ export default function BackgroundSystem() {
       linesRef.current = Array.from({ length: cfg.lines }, (_, i) => {
         const t = cfg.lines <= 1 ? 0 : i / (cfg.lines - 1);
         const y0 = Math.round(t * h * 0.72 + h * 0.06); // keep lower area calmer
-        return { y0, seed: 10 + i * 17.23, phase: i * 0.37 };
+        return { y0, seed: (10000 + i * 1723) | 0, phase: i * 0.37 };
       });
 
       // nodes: slow drifting points
       nodesRef.current = Array.from({ length: cfg.nodes }, (_, i) => {
-        const seed = 100 + i * 13.7;
-        const x = hash1(seed + 1) * w;
-        const y = hash1(seed + 2) * (h * 0.75);
-        const vx = (hash1(seed + 3) - 0.5) * 10; // px/s
-        const vy = (hash1(seed + 4) - 0.5) * 6;
-        const r = 1.5 + hash1(seed + 5) * 2.5;
+        const seed = (10000 + i * 137) | 0;
+        const x = hash1i(seed + 1) * w;
+        const y = hash1i(seed + 2) * (h * 0.75);
+        const vx = (hash1i(seed + 3) - 0.5) * 10; // px/s
+        const vy = (hash1i(seed + 4) - 0.5) * 6;
+        const r = 1.5 + hash1i(seed + 5) * 2.5;
         return { x, y, vx, vy, r, seed };
       });
     };
@@ -215,6 +241,40 @@ export default function BackgroundSystem() {
       fadeGradientRef.current = g;
 
       initScene();
+
+      const buildStaticLayer = () => {
+        const scale = Math.min(dpr, window.devicePixelRatio || 1);
+        const layer = document.createElement("canvas");
+        layer.width = canvas.width;
+        layer.height = canvas.height;
+
+        const lctx = layer.getContext("2d", { alpha: false });
+        if (!lctx) return;
+
+        lctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+        lctx.fillStyle = FALLBACK_BG;
+        lctx.fillRect(0, 0, w, h);
+
+        const cfg = cfgRef.current;
+        lctx.save();
+        lctx.globalAlpha = cfg.dotAlpha;
+        lctx.fillStyle = "rgba(255,255,255,1)";
+        lctx.beginPath();
+        for (let i = 0; i < cfg.dots; i++) {
+          const seed = (5000 + i * 91) | 0;
+          const x = hash1i(seed + 1) * w;
+          const y = hash1i(seed + 2) * (h * 0.78);
+          const r = 0.6 + hash1i(seed + 3) * 0.8;
+          lctx.moveTo(x + r, y);
+          lctx.arc(x, y, r, 0, Math.PI * 2);
+        }
+        lctx.fill();
+        lctx.restore();
+
+        staticLayerRef.current = layer;
+      };
+      buildStaticLayer();
     };
 
     const onResize = () => {
@@ -252,28 +312,15 @@ export default function BackgroundSystem() {
       const cfg = cfgRef.current;
       const den = densityRef.current;
       const linesN = Math.floor(cfg.lines * den);
-      const dotsN = Math.floor(cfg.dots * den);
       const nodesN = Math.floor(cfg.nodes * den);
 
-      // background
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = FALLBACK_BG;
-      ctx.fillRect(0, 0, w, h);
-
-      // subtle dots (avoid fill-rate: few circles, low alpha)
-      ctx.save();
-      ctx.globalAlpha = cfg.dotAlpha;
-      ctx.fillStyle = "rgba(255,255,255,1)";
-      for (let i = 0; i < dotsN; i++) {
-        const seed = 500 + i * 9.17;
-        const x = hash1(seed + 1) * w;
-        const y = hash1(seed + 2) * (h * 0.78);
-        const r = 0.6 + hash1(seed + 3) * 0.8;
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, Math.PI * 2);
-        ctx.fill();
+      const layer = staticLayerRef.current;
+      if (layer) {
+        ctx.drawImage(layer, 0, 0, w, h);
+      } else {
+        ctx.fillStyle = FALLBACK_BG;
+        ctx.fillRect(0, 0, w, h);
       }
-      ctx.restore();
 
       // lines (contour/flow vibe)
       ctx.save();
@@ -307,20 +354,17 @@ export default function BackgroundSystem() {
       ctx.globalCompositeOperation = "lighter";
       ctx.globalAlpha = cfg.nodeAlpha;
 
-      for (let i = 0; i < nodesN; i++) {
-        const p = nodesRef.current[i];
-        if (!p) break;
-        const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
-        const px = p.x + wob * 6;
-        const py = p.y + wob * 4;
-
-        const grad = ctx.createRadialGradient(px, py, 0, px, py, p.r * 8);
-        grad.addColorStop(0, "rgba(255,255,255,0.35)");
-        grad.addColorStop(1, "rgba(255,255,255,0)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(px, py, p.r * 8, 0, Math.PI * 2);
-        ctx.fill();
+      const glow = glowRef.current;
+      if (glow) {
+        const size = 64;
+        for (let i = 0; i < nodesN; i++) {
+          const p = nodesRef.current[i];
+          if (!p) break;
+          const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
+          const px = p.x + wob * 6;
+          const py = p.y + wob * 4;
+          ctx.drawImage(glow, px - size / 2, py - size / 2, size, size);
+        }
       }
       ctx.restore();
 
