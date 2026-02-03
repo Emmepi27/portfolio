@@ -6,72 +6,70 @@ import { useBackgroundPolicy } from "@/lib/background/policy";
 const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
 const RESIZE_THROTTLE_MS = 32; // max ~30fps during resize bursts
-const SCROLL_PAUSE_MS = 120;
 
 type Config = {
   lines: number;
   segments: number;
   lineAlpha: number;
   lineWidth: number;
-  amp: number;          // px
-  freq: number;         // noise frequency
-  speed: number;        // time speed
+  amp: number; // px
+  freq: number; // noise frequency
+  speed: number; // time speed
   dots: number;
   dotAlpha: number;
   nodes: number;
   nodeAlpha: number;
-  fadeStart: number;    // 0..1
+  fadeStart: number; // 0..1
 };
 
 function configFor(profile: string): Config {
   switch (profile) {
     case "desktop":
       return {
-        lines: 24,
-        segments: 90,
-        lineAlpha: 0.10,
-        lineWidth: 1.1,
-        amp: 28,
-        freq: 0.010,
-        speed: 0.18,
-        dots: 140,
-        dotAlpha: 0.08,
-        nodes: 20,
-        nodeAlpha: 0.10,
-        fadeStart: 0.62,
+        lines: 28,
+        segments: 100,
+        lineAlpha: 0.12,
+        lineWidth: 1.2,
+        amp: 32,
+        freq: 0.009,
+        speed: 0.2,
+        dots: 160,
+        dotAlpha: 0.09,
+        nodes: 24,
+        nodeAlpha: 0.14,
+        fadeStart: 0.65,
       };
     case "mobile":
       return {
-        lines: 16,
-        segments: 70,
-        lineAlpha: 0.09,
-        lineWidth: 1.0,
-        amp: 22,
-        freq: 0.011,
-        speed: 0.15,
-        dots: 80,
-        dotAlpha: 0.07,
-        nodes: 12,
-        nodeAlpha: 0.09,
-        fadeStart: 0.60,
+        lines: 18,
+        segments: 75,
+        lineAlpha: 0.10,
+        lineWidth: 1.1,
+        amp: 24,
+        freq: 0.010,
+        speed: 0.16,
+        dots: 90,
+        dotAlpha: 0.08,
+        nodes: 14,
+        nodeAlpha: 0.11,
+        fadeStart: 0.62,
       };
     case "low-end":
       return {
-        lines: 12,
-        segments: 55,
-        lineAlpha: 0.08,
+        lines: 14,
+        segments: 60,
+        lineAlpha: 0.09,
         lineWidth: 1.0,
-        amp: 16,
-        freq: 0.012,
-        speed: 0.12,
-        dots: 55,
-        dotAlpha: 0.06,
-        nodes: 8,
-        nodeAlpha: 0.08,
-        fadeStart: 0.58,
+        amp: 18,
+        freq: 0.011,
+        speed: 0.13,
+        dots: 60,
+        dotAlpha: 0.07,
+        nodes: 10,
+        nodeAlpha: 0.09,
+        fadeStart: 0.60,
       };
     default:
-      // off handled outside
       return {
         lines: 0,
         segments: 0,
@@ -98,9 +96,11 @@ function hash1i(n: number) {
   x ^= x >>> 16;
   return (x >>> 0) / 4294967296;
 }
+
 function smoothstep(t: number) {
   return t * t * (3 - 2 * t);
 }
+
 function noise1(x: number, seedI: number) {
   const i = Math.floor(x);
   const f = x - i;
@@ -111,7 +111,14 @@ function noise1(x: number, seedI: number) {
 }
 
 type Line = { y0: number; seed: number; phase: number };
-type Node = { x: number; y: number; vx: number; vy: number; r: number; seed: number };
+type Node = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  r: number;
+  seed: number;
+};
 
 function BackgroundSystem() {
   const { profile, fps, dpr, running, density } = useBackgroundPolicy();
@@ -131,14 +138,16 @@ function BackgroundSystem() {
 
   const linesRef = React.useRef<Line[]>([]);
   const nodesRef = React.useRef<Node[]>([]);
-  const nodePositionsRef = React.useRef<Float32Array | null>(null);
+  const nodePositionsRef = React.useRef<Float32Array>(new Float32Array(48)); // max 24 nodes × 2
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
   const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
 
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
-  const lastScrollRef = React.useRef(0);
+
+  // Gradient animation state
+  const gradientPhaseRef = React.useRef(0);
 
   React.useEffect(() => {
     densityRef.current = density;
@@ -172,24 +181,28 @@ function BackgroundSystem() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
+    const ctx = canvas.getContext("2d", {
+      alpha: false,
+      desynchronized: true,
+    });
     if (!ctx) return;
 
     const ensureGlowSprite = () => {
       if (glowSpriteRef.current) return;
 
       const s = document.createElement("canvas");
-      const size = 64;
+      const size = 80; // bigger glow
       s.width = size;
       s.height = size;
 
-      const sctx = s.getContext("2d");
+      const sctx = s.getContext("2d", { alpha: true });
       if (!sctx) return;
 
       const r = size / 2;
       const g = sctx.createRadialGradient(r, r, 0, r, r, r);
-      g.addColorStop(0, "rgba(255,255,255,0.35)");
-      g.addColorStop(1, "rgba(255,255,255,0)");
+      g.addColorStop(0, "rgba(120, 220, 240, 0.5)"); // cyan core
+      g.addColorStop(0.4, "rgba(80, 200, 220, 0.25)");
+      g.addColorStop(1, "rgba(80, 200, 220, 0)");
       sctx.fillStyle = g;
       sctx.fillRect(0, 0, size, size);
 
@@ -204,21 +217,21 @@ function BackgroundSystem() {
     const initScene = () => {
       const cfg = cfgRef.current;
 
-      // lines: evenly distributed top→mid (avoid busy footer)
+      // lines: evenly distributed across full height
       linesRef.current = Array.from({ length: cfg.lines }, (_, i) => {
         const t = cfg.lines <= 1 ? 0 : i / (cfg.lines - 1);
-        const y0 = Math.round(t * h * 0.72 + h * 0.06); // keep lower area calmer
+        const y0 = Math.round(t * h * 0.85 + h * 0.05); // full range
         return { y0, seed: (10000 + i * 1723) | 0, phase: i * 0.37 };
       });
 
-      // nodes: slow drifting points
+      // nodes: distributed across full viewport
       nodesRef.current = Array.from({ length: cfg.nodes }, (_, i) => {
         const seed = (10000 + i * 137) | 0;
         const x = hash1i(seed + 1) * w;
-        const y = hash1i(seed + 2) * (h * 0.75);
-        const vx = (hash1i(seed + 3) - 0.5) * 10; // px/s
-        const vy = (hash1i(seed + 4) - 0.5) * 6;
-        const r = 1.5 + hash1i(seed + 5) * 2.5;
+        const y = hash1i(seed + 2) * h; // full height
+        const vx = (hash1i(seed + 3) - 0.5) * 12; // slightly faster
+        const vy = (hash1i(seed + 4) - 0.5) * 8;
+        const r = 2 + hash1i(seed + 5) * 3;
         return { x, y, vx, vy, r, seed };
       });
     };
@@ -228,7 +241,8 @@ function BackgroundSystem() {
 
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
-      if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h) return;
+      if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h)
+        return;
 
       lastSizeRef.current = { w: cw, h: ch };
       w = cw;
@@ -240,12 +254,13 @@ function BackgroundSystem() {
       canvas.height = Math.max(1, Math.floor(h * scale));
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-      // cache fade gradient for safe-zone-ish readability
+      // cache fade gradient for readability
       const cfg = cfgRef.current;
       const y0 = h * cfg.fadeStart;
       const g = ctx.createLinearGradient(0, y0, 0, h);
       g.addColorStop(0, "rgba(10,10,10,0)");
-      g.addColorStop(1, "rgba(10,10,10,1)");
+      g.addColorStop(0.7, "rgba(10,10,10,0.6)");
+      g.addColorStop(1, "rgba(10,10,10,0.95)");
       fadeGradientRef.current = g;
 
       initScene();
@@ -272,8 +287,8 @@ function BackgroundSystem() {
         for (let i = 0; i < cfg.dots; i++) {
           const seed = (5000 + i * 91) | 0;
           const x = hash1i(seed + 1) * w;
-          const y = hash1i(seed + 2) * (h * 0.78);
-          const r = 0.6 + hash1i(seed + 3) * 0.8;
+          const y = hash1i(seed + 2) * h; // full height dots
+          const r = 0.7 + hash1i(seed + 3) * 1;
           lctx.moveTo(x + r, y);
           lctx.arc(x, y, r, 0, Math.PI * 2);
         }
@@ -287,14 +302,10 @@ function BackgroundSystem() {
 
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
-      const inScrollTruce = performance.now() - lastScrollRef.current < SCROLL_PAUSE_MS;
-      const delay = inScrollTruce
-        ? Math.max(SCROLL_PAUSE_MS - (performance.now() - lastScrollRef.current), 0)
-        : RESIZE_DEBOUNCE_MS;
       resizeTimeout = setTimeout(() => {
         resizeTimeout = null;
         setSize();
-      }, delay);
+      }, RESIZE_DEBOUNCE_MS);
     };
 
     const onResizeThrottled = () => {
@@ -304,6 +315,7 @@ function BackgroundSystem() {
         onResize();
       }, RESIZE_THROTTLE_MS);
     };
+
     const resizeObs = new ResizeObserver(onResizeThrottled);
     resizeObs.observe(canvas.parentElement ?? canvas);
     setSize();
@@ -333,6 +345,7 @@ function BackgroundSystem() {
       const linesN = Math.floor(cfg.lines * den);
       const nodesN = Math.floor(cfg.nodes * den);
 
+      // Static background
       const layer = staticLayerRef.current;
       if (layer) {
         ctx.drawImage(layer, 0, 0, w, h);
@@ -341,13 +354,21 @@ function BackgroundSystem() {
         ctx.fillRect(0, 0, w, h);
       }
 
-      // lines (contour/flow vibe)
+      // Animated lines (flow)
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       ctx.lineWidth = cfg.lineWidth;
-      const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.5); // 0..1 ogni 4s
-      ctx.globalAlpha = cfg.lineAlpha * (0.7 + 0.3 * pulse);
-      ctx.strokeStyle = "rgba(80, 200, 220, 1)";
+
+      // Breathing pulse effect (slower, more subtle)
+      const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.4);
+      ctx.globalAlpha = cfg.lineAlpha * (0.75 + 0.25 * pulse);
+
+      // Multi-color gradient stroke
+      const lineGradient = ctx.createLinearGradient(0, 0, w, 0);
+      lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
+      lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
+      lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
+      ctx.strokeStyle = lineGradient;
 
       const seg = Math.max(10, cfg.segments);
       const dx = w / seg;
@@ -355,11 +376,12 @@ function BackgroundSystem() {
       for (let li = 0; li < linesN; li++) {
         const ln = linesRef.current[li];
         if (!ln) break;
+
         ctx.beginPath();
         for (let i = 0; i <= seg; i++) {
           const x = i * dx;
           const nx = x * cfg.freq + tSec * cfg.speed + ln.phase;
-          const n = noise1(nx, ln.seed); // 0..1
+          const n = noise1(nx, ln.seed);
           const y = ln.y0 + (n - 0.5) * 2 * cfg.amp;
 
           if (i === 0) ctx.moveTo(x, y);
@@ -369,55 +391,59 @@ function BackgroundSystem() {
       }
       ctx.restore();
 
-      // drifting nodes: pre-compute positions, batch trails, then glows
+      // Drifting nodes with trails
       const sprite = glowSpriteRef.current;
       if (sprite && nodesN > 0) {
         const nodes = nodesRef.current;
-        const needed = nodesN * 2;
-        let positions = nodePositionsRef.current;
-        if (!positions || positions.length < needed) {
-          positions = new Float32Array(Math.max(needed, (cfgRef.current.nodes || 20) * 2));
-          nodePositionsRef.current = positions;
-        }
+        const positions = nodePositionsRef.current;
+
+        // Pre-compute positions (zero allocation)
         for (let i = 0; i < nodesN; i++) {
           const p = nodes[i];
           if (!p) break;
+
           const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
-          positions[i * 2] = p.x + wob * 6;
-          positions[i * 2 + 1] = p.y + wob * 4;
+          positions[i * 2] = p.x + wob * 8;
+          positions[i * 2 + 1] = p.y + wob * 5;
         }
 
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        // batched trails: single path
-        ctx.globalAlpha = cfg.nodeAlpha * 0.5;
-        ctx.strokeStyle = "rgba(80,200,220,0.3)";
-        ctx.lineWidth = 1;
+        // Trails (batched single path)
+        ctx.globalAlpha = cfg.nodeAlpha * 0.6;
+        ctx.strokeStyle = "rgba(100, 210, 230, 0.4)";
+        ctx.lineWidth = 1.5;
+        ctx.lineCap = "round";
         ctx.beginPath();
+
         for (let i = 0; i < nodesN; i++) {
           const p = nodes[i];
           if (!p) break;
+
           const px = positions[i * 2];
           const py = positions[i * 2 + 1];
+
           ctx.moveTo(px, py);
-          ctx.lineTo(px - p.vx * 5, py - p.vy * 5);
+          ctx.lineTo(px - p.vx * 6, py - p.vy * 6);
         }
         ctx.stroke();
 
-        // glows using pre-computed positions
+        // Glows (using sprite)
         ctx.globalAlpha = cfg.nodeAlpha;
-        const size = 64;
+        const size = 80;
         const half = size / 2;
+
         for (let i = 0; i < nodesN; i++) {
           const px = positions[i * 2];
           const py = positions[i * 2 + 1];
           ctx.drawImage(sprite, px - half, py - half, size, size);
         }
+
         ctx.restore();
       }
 
-      // readability fade (acts like a safe-zone towards footer)
+      // Readability fade (bottom gradient)
       const fg = fadeGradientRef.current;
       if (fg) {
         ctx.save();
@@ -431,7 +457,6 @@ function BackgroundSystem() {
     const tick = (now: number) => {
       if (!runningRef.current) return;
 
-      // always schedule next frame while running (fix “freeze”)
       rafIdRef.current = requestAnimationFrame(tick);
 
       const interval = frameIntervalRef.current;
@@ -440,38 +465,35 @@ function BackgroundSystem() {
 
       if (w <= 0 || h <= 0) return;
 
-      if (performance.now() - lastScrollRef.current < SCROLL_PAUSE_MS) return;
-
-      // time in seconds; stable increment even with low fps
+      // Time progression
       timeRef.current += interval / 1000;
+
+      // Update gradient phase for CSS overlay
+      gradientPhaseRef.current = (gradientPhaseRef.current + 0.3) % 100;
 
       draw(timeRef.current);
 
-      // update nodes at the same cadence
+      // Update node physics
       const cfg = cfgRef.current;
       const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
+
       for (let i = 0; i < nodesN; i++) {
         const p = nodesRef.current[i];
         if (!p) break;
+
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
-        // wrap with margins to avoid pop on edges
-        const mx = 40;
-        const my = 40;
+        // Wrap at edges (with margin)
+        const mx = 60;
+        const my = 60;
         if (p.x < -mx) p.x = w + mx;
         if (p.x > w + mx) p.x = -mx;
-        if (p.y < -my) p.y = h * 0.75 + my;
-        if (p.y > h * 0.75 + my) p.y = -my;
+        if (p.y < -my) p.y = h + my;
+        if (p.y > h + my) p.y = -my;
       }
     };
-
-    const onScroll = () => {
-      lastScrollRef.current = performance.now();
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("wheel", onScroll, { passive: true });
 
     syncRunningRef.current = syncRunning;
     const onVis = () => syncRunning();
@@ -479,8 +501,6 @@ function BackgroundSystem() {
     syncRunning();
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("wheel", onScroll);
       syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
       stopLoop();
@@ -508,11 +528,11 @@ function BackgroundSystem() {
         style={{ pointerEvents: "none" }}
         aria-hidden="true"
       />
+      {/* Dynamic animated gradient overlay */}
       <div
-        className="absolute inset-0 opacity-30"
+        className="absolute inset-0 opacity-25 transition-opacity duration-1000"
         style={{
-          background:
-            "radial-gradient(circle at 30% 20%, rgba(80,200,220,0.15) 0%, transparent 50%)",
+          background: `radial-gradient(circle at ${28 + Math.sin(gradientPhaseRef.current * 0.02) * 8}% ${18 + Math.cos(gradientPhaseRef.current * 0.015) * 6}%, rgba(100, 210, 230, 0.18) 0%, rgba(80, 200, 220, 0.08) 40%, transparent 70%)`,
         }}
       />
     </div>
