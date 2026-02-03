@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Wrench, Search, Rocket } from "lucide-react";
 import { site } from "@/config/site";
+import ProofGrid from "@/components/proof/proof-grid";
 
 export const metadata = {
   title: "Servizi: Rebuild, SEO Tecnico & Performance",
@@ -60,6 +61,10 @@ export default function ServicesPage() {
           </Link>
         </p>
       </header>
+
+      <section className="space-y-5">
+        <ProofGrid compact />
+      </section>
 
       <section className="grid gap-5 md:grid-cols-3">
         {services.map((s) => (

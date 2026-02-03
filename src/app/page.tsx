@@ -2,6 +2,7 @@ import Link from "next/link";
 import { projects } from "@/content/projects";
 import { site } from "@/config/site";
 import HeroPortrait from "@/components/home/HeroPortrait";
+import ProofGrid from "@/components/proof/proof-grid";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -59,6 +60,10 @@ export default function HomePage() {
         <div className="mt-8 min-w-0 lg:col-span-5 lg:mt-0 lg:flex lg:justify-end">
           <HeroPortrait />
         </div>
+      </section>
+
+      <section data-bg-zone="risultati" className="space-y-6">
+        <ProofGrid />
       </section>
 
       <section data-bg-zone="selection" className="space-y-6">

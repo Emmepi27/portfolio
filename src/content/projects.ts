@@ -61,6 +61,7 @@ export type Project = {
         "Motion rispettoso di prefers-reduced-motion",
       ],
       impact: [
+        "~500 visite/mese (traffico organico post-rebuild)",
         "Architettura SEO riusabile",
         "Base performance-friendly",
         "Mantenibilità tramite modelli tipizzati",
@@ -83,6 +84,7 @@ export type Project = {
         "Add-on charm con logica prezzo",
       ],
       impact: [
+        "Shopify Markets (domini + IT/EN) + shipping profiles/checkout debug → pronto per vendite internazionali",
         "Upsell semplice e chiaro",
         "Meno bug percepiti su mobile",
         "Audience estesa con EN",
