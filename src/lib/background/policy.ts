@@ -124,13 +124,13 @@ export function computePolicyState(): PolicyState {
 function pickBestZone(ratios: Partial<Record<BgZone, number>>, menuOpen: boolean): BgZone {
   if (menuOpen) return "menu-overlay";
 
-  let best: BgZone = "main";
+  const candidates: BgZone[] = ["footer", "hero", "selection"];
+
+  let best: BgZone = "hero";
   let bestScore = -1;
 
-  const candidates: BgZone[] = ["footer", "hero", "selection", "main"];
   for (const z of candidates) {
     const r = ratios[z] ?? 0;
-    // score: ratio prima, poi priority (tie-break)
     const score = r * 10 + ZONE_PRIORITY[z] * 0.01;
     if (score > bestScore) {
       bestScore = score;
@@ -138,9 +138,8 @@ function pickBestZone(ratios: Partial<Record<BgZone, number>>, menuOpen: boolean
     }
   }
 
-  // se nessuno è veramente in view, resta main
   const maxRatio = Math.max(...candidates.map((z) => ratios[z] ?? 0));
-  if (maxRatio < 0.05) return "main";
+  if (maxRatio < 0.05) return "main"; // fallback vero
 
   return best;
 }
@@ -159,7 +158,7 @@ export function useBackgroundPolicy(): RuntimeState {
   React.useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
-    const ratiosRef = { current: { hero: 0, selection: 0, footer: 0, main: 1 } as Record<BgZone, number> };
+    const ratiosRef = { current: {} as Partial<Record<BgZone, number>> };
     const menuOpenRef = { current: false };
     const lastRef: { current: { zone: BgZone; running: boolean; density: number; profile: BackgroundProfile; fps: number; dpr: number; visible: boolean } } = {
       current: { zone: "main", running: false, density: ZONE_DENSITY.main, profile: "desktop", fps: 60, dpr: 1, visible: true },
@@ -227,7 +226,6 @@ export function useBackgroundPolicy(): RuntimeState {
     observeZone("hero");
     observeZone("selection");
     observeZone("footer");
-    observeZone("main"); // utile come fallback
 
     // --- menu overlay detection (mount/unmount) ---
     const refreshMenu = () => {

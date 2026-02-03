@@ -127,9 +127,17 @@ export default function BackgroundSystem() {
   const nodesRef = React.useRef<Node[]>([]);
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
 
+  const policyRunningRef = React.useRef(running);
+  const syncRunningRef = React.useRef<(() => void) | null>(null);
+
   React.useEffect(() => {
     densityRef.current = density;
   }, [density]);
+
+  React.useEffect(() => {
+    policyRunningRef.current = running;
+    syncRunningRef.current?.();
+  }, [running]);
 
   React.useEffect(() => {
     mountedRef.current = true;
@@ -233,13 +241,26 @@ export default function BackgroundSystem() {
       rafIdRef.current = requestAnimationFrame(tick);
     };
 
-    const onVis = () => {
-      if (document.visibilityState === "hidden") stopLoop();
-      else startLoop();
+    const syncRunning = () => {
+      const shouldRun =
+        document.visibilityState === "visible" && policyRunningRef.current;
+      if (shouldRun) startLoop();
+      else stopLoop();
     };
+
+    syncRunningRef.current = syncRunning;
+
+    const onVis = () => syncRunning();
+    document.addEventListener("visibilitychange", onVis);
+
+    syncRunning();
 
     const draw = (tSec: number) => {
       const cfg = cfgRef.current;
+      const den = densityRef.current;
+      const linesN = Math.floor(cfg.lines * den);
+      const dotsN = Math.floor(cfg.dots * den);
+      const nodesN = Math.floor(cfg.nodes * den);
 
       // background
       ctx.clearRect(0, 0, w, h);
@@ -250,7 +271,7 @@ export default function BackgroundSystem() {
       ctx.save();
       ctx.globalAlpha = cfg.dotAlpha;
       ctx.fillStyle = "rgba(255,255,255,1)";
-      for (let i = 0; i < cfg.dots; i++) {
+      for (let i = 0; i < dotsN; i++) {
         const seed = 500 + i * 9.17;
         const x = hash1(seed + 1) * w;
         const y = hash1(seed + 2) * (h * 0.78);
@@ -271,7 +292,9 @@ export default function BackgroundSystem() {
       const seg = Math.max(10, cfg.segments);
       const dx = w / seg;
 
-      for (const ln of linesRef.current) {
+      for (let li = 0; li < linesN; li++) {
+        const ln = linesRef.current[li];
+        if (!ln) break;
         ctx.beginPath();
         for (let i = 0; i <= seg; i++) {
           const x = i * dx;
@@ -291,7 +314,9 @@ export default function BackgroundSystem() {
       ctx.globalCompositeOperation = "lighter";
       ctx.globalAlpha = cfg.nodeAlpha;
 
-      for (const p of nodesRef.current) {
+      for (let i = 0; i < nodesN; i++) {
+        const p = nodesRef.current[i];
+        if (!p) break;
         const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
         const px = p.x + wob * 6;
         const py = p.y + wob * 4;
@@ -336,8 +361,11 @@ export default function BackgroundSystem() {
 
       // update nodes at the same cadence
       const cfg = cfgRef.current;
+      const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
-      for (const p of nodesRef.current) {
+      for (let i = 0; i < nodesN; i++) {
+        const p = nodesRef.current[i];
+        if (!p) break;
         p.x += p.vx * dt;
         p.y += p.vy * dt;
 
@@ -351,11 +379,8 @@ export default function BackgroundSystem() {
       }
     };
 
-    document.addEventListener("visibilitychange", onVis);
-
-    if (document.visibilityState === "visible") startLoop();
-
     return () => {
+      syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
       stopLoop();
       resizeObs.disconnect();
