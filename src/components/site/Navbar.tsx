@@ -242,7 +242,7 @@ export default function Navbar() {
       <div
         className="lg:hidden fixed z-50"
         style={{
-          top: 'calc(1.5rem + env(safe-area-inset-top, 0px))',
+          top: 'calc(1.75rem + env(safe-area-inset-top, 0px))',
           right: 'max(2rem, calc(1rem + env(safe-area-inset-right, 0px)))',
         }}
       >
