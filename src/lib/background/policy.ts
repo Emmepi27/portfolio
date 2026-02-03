@@ -52,10 +52,10 @@ const ZONE_SWITCH_HYSTERESIS = 0.15; // 15% advantage needed to switch
 // --- Zone tuning ---
 const ZONE_DENSITY: Record<BgZone, number> = {
   hero: 1,
-  selection: 1, // ✅ Era 0.75
-  main: 1, // ✅ Era 0.85
-  footer: 1, // ✅ Era 0.3
-  "menu-overlay": 0.5, // ✅ Era 0 (menu overlay riduce ma non azzera)
+  selection: 0.75, // Increased from 0.5 for better continuity
+  main: 0.85, // Increased from 0.75 for richer background
+  footer: 0.3, // Was 0 - now shows subtle animation
+  "menu-overlay": 0,
 };
 
 const ZONE_PRIORITY: Record<BgZone, number> = {
