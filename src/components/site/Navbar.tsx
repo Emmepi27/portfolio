@@ -154,14 +154,16 @@ export default function Navbar() {
   };
 
   return (
-    <motion.header
-      variants={headerVariants}
-      initial="hidden"
-      animate="show"
+    <header
       className="fixed top-0 z-50 w-full"
       style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
     >
-      <div className="relative w-full">
+      <motion.div
+        variants={headerVariants}
+        initial="hidden"
+        animate="show"
+        className="relative w-full"
+      >
         <motion.div
           animate={{
             paddingTop: scrolled ? 'calc(0.5rem + env(safe-area-inset-top, 0px))' : 'calc(0.75rem + env(safe-area-inset-top, 0px))',
@@ -234,9 +236,9 @@ export default function Navbar() {
             />
           </motion.div>
         </motion.div>
-      </div>
+      </motion.div>
 
-      {/* Hamburger (mobile) */}
+      {/* Hamburger (mobile) — fuori dal motion così fixed è rispetto al viewport */}
       <div
         className="lg:hidden fixed z-50"
         style={{
@@ -266,6 +268,6 @@ export default function Navbar() {
       </div>
 
       <NavbarMobile isOpen={isOpen} items={NAV_ITEMS} activeKey={activeKey} onClose={closeMobile} />
-    </motion.header>
+    </header>
   );
 }

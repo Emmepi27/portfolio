@@ -21,7 +21,7 @@ if (!tracePath) {
 let raw;
 try {
   raw = readFileSync(resolve(tracePath), "utf-8");
-} catch (e) {
+} catch {
   console.error("File non trovato:", tracePath);
   process.exit(1);
 }
@@ -29,7 +29,7 @@ try {
 let trace;
 try {
   trace = JSON.parse(raw);
-} catch (e) {
+} catch {
   console.error("JSON non valido");
   process.exit(1);
 }
@@ -139,8 +139,6 @@ console.log("\nFrame boundaries (CompositeLayers/Display):", frameEvents.length)
 if (frameIntervalsMs.length > 0) {
   console.log("Frame interval medio:", avgFrameMs.toFixed(2), "ms");
   console.log("Frame interval stdev:", stdevMs.toFixed(2), "ms");
-  const target60 = 1000 / 60;
-  const target30 = 1000 / 30;
   if (stdevMs > 10) {
     console.log("  [INFO] Frame time variabile (stdev > 10ms)");
   }

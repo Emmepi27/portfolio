@@ -7,6 +7,10 @@ const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
 const RESIZE_THROTTLE_MS = 32;
 
+// Mobile browsers often change viewport height on first scroll (URL bar/toolbars).
+// We resize the canvas buffer, but we avoid rebuilding the scene unless the change is "real".
+const SCENE_REBUILD_HEIGHT_PX = 120;
+
 type Config = {
   lines: number;
   segments: number;
@@ -43,10 +47,10 @@ function configFor(profile: string): Config {
       return {
         lines: 18,
         segments: 75,
-        lineAlpha: 0.10,
+        lineAlpha: 0.1,
         lineWidth: 1.1,
         amp: 24,
-        freq: 0.010,
+        freq: 0.01,
         speed: 0.16,
         dots: 90,
         dotAlpha: 0.08,
@@ -67,7 +71,7 @@ function configFor(profile: string): Config {
         dotAlpha: 0.07,
         nodes: 10,
         nodeAlpha: 0.09,
-        fadeStart: 0.60,
+        fadeStart: 0.6,
       };
     default:
       return {
@@ -128,6 +132,11 @@ function BackgroundSystem() {
   const mountedRef = React.useRef(true);
 
   const lastSizeRef = React.useRef({ w: 0, h: 0 });
+
+  // Scene size is "stable layout size" for lines/nodes.
+  // It only updates on first run or on "real" resizes (rotation, big height changes, width changes).
+  const sceneSizeRef = React.useRef({ w: 0, h: 0 });
+
   const frameIntervalRef = React.useRef(1000 / 60);
   const lastFrameRef = React.useRef(0);
 
@@ -142,9 +151,7 @@ function BackgroundSystem() {
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
   const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
 
-  // ============================================================================
-  // FIX SCATTI: Cache line gradient (created once, not every frame)
-  // ============================================================================
+  // Cache line gradient (created once per resize).
   const lineGradientRef = React.useRef<CanvasGradient | null>(null);
 
   const policyRunningRef = React.useRef(running);
@@ -179,6 +186,7 @@ function BackgroundSystem() {
 
   React.useEffect(() => {
     if (profile === "off" || typeof window === "undefined") return;
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -212,22 +220,25 @@ function BackgroundSystem() {
 
     let w = 0;
     let h = 0;
+
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     let roThrottleTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const initScene = () => {
       const cfg = cfgRef.current;
+      const sceneW = sceneSizeRef.current.w || w;
+      const sceneH = sceneSizeRef.current.h || h;
 
       linesRef.current = Array.from({ length: cfg.lines }, (_, i) => {
         const t = cfg.lines <= 1 ? 0 : i / (cfg.lines - 1);
-        const y0 = Math.round(t * h * 0.85 + h * 0.05);
+        const y0 = Math.round(t * sceneH * 0.85 + sceneH * 0.05);
         return { y0, seed: (10000 + i * 1723) | 0, phase: i * 0.37 };
       });
 
       nodesRef.current = Array.from({ length: cfg.nodes }, (_, i) => {
         const seed = (10000 + i * 137) | 0;
-        const x = hash1i(seed + 1) * w;
-        const y = hash1i(seed + 2) * h;
+        const x = hash1i(seed + 1) * sceneW;
+        const y = hash1i(seed + 2) * sceneH;
         const vx = (hash1i(seed + 3) - 0.5) * 12;
         const vy = (hash1i(seed + 4) - 0.5) * 8;
         const r = 2 + hash1i(seed + 5) * 3;
@@ -235,17 +246,65 @@ function BackgroundSystem() {
       });
     };
 
+    const buildStaticLayer = () => {
+      const scale = Math.min(dpr, window.devicePixelRatio || 1);
+
+      const layer = document.createElement("canvas");
+      layer.width = canvas.width;
+      layer.height = canvas.height;
+
+      const lctx = layer.getContext("2d", { alpha: false });
+      if (!lctx) return;
+
+      lctx.setTransform(scale, 0, 0, scale, 0, 0);
+
+      // Fill background to avoid flash on initial draw
+      lctx.fillStyle = FALLBACK_BG;
+      lctx.fillRect(0, 0, w, h);
+
+      const cfg = cfgRef.current;
+      lctx.save();
+      lctx.globalAlpha = cfg.dotAlpha;
+      lctx.fillStyle = "rgba(255,255,255,1)";
+      lctx.beginPath();
+
+      for (let i = 0; i < cfg.dots; i++) {
+        const seed = (5000 + i * 91) | 0;
+        const x = hash1i(seed + 1) * w;
+        const y = hash1i(seed + 2) * h;
+        const r = 0.7 + hash1i(seed + 3) * 1;
+        lctx.moveTo(x + r, y);
+        lctx.arc(x, y, r, 0, Math.PI * 2);
+      }
+
+      lctx.fill();
+      lctx.restore();
+
+      staticLayerRef.current = layer;
+    };
+
     const setSize = () => {
       ensureGlowSprite();
 
-      const cw = canvas.clientWidth;
-      const ch = canvas.clientHeight;
-      if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h)
-        return;
+      const cw = Math.round(canvas.clientWidth);
+      const ch = Math.round(canvas.clientHeight);
+      if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h) return;
 
       lastSizeRef.current = { w: cw, h: ch };
       w = cw;
       h = ch;
+
+      // Decide whether to rebuild scene (avoid URL-bar height jitter)
+      const prevScene = sceneSizeRef.current;
+      const first = prevScene.w === 0 || prevScene.h === 0;
+      const sceneWidthChanged = cw !== prevScene.w;
+      const sceneHeightBigChange =
+        Math.abs(ch - prevScene.h) >= SCENE_REBUILD_HEIGHT_PX;
+      const rebuildScene = first || sceneWidthChanged || sceneHeightBigChange;
+
+      if (rebuildScene) {
+        sceneSizeRef.current = { w: cw, h: ch };
+      }
 
       const scale = Math.min(dpr, window.devicePixelRatio || 1);
 
@@ -253,58 +312,36 @@ function BackgroundSystem() {
       canvas.height = Math.max(1, Math.floor(h * scale));
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-      // ========================================================================
-      // FIX SCATTI: Cache line gradient on resize (not every frame)
-      // ========================================================================
+      // After resizing, canvas is cleared; fill immediately to avoid a blank flash.
+      ctx.fillStyle = FALLBACK_BG;
+      ctx.fillRect(0, 0, w, h);
+
+      // Cache line gradient on resize
       const lineGradient = ctx.createLinearGradient(0, 0, w, 0);
       lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
       lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
       lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
       lineGradientRef.current = lineGradient;
 
+      // Fade gradient should be based on stable scene height
       const cfg = cfgRef.current;
-      const y0 = h * cfg.fadeStart;
-      const g = ctx.createLinearGradient(0, y0, 0, h);
+      const sceneH = sceneSizeRef.current.h || h;
+
+      const y0 = sceneH * cfg.fadeStart;
+      const g = ctx.createLinearGradient(0, y0, 0, sceneH);
       g.addColorStop(0, "rgba(10,10,10,0)");
       g.addColorStop(0.7, "rgba(10,10,10,0.6)");
       g.addColorStop(1, "rgba(10,10,10,0.95)");
       fadeGradientRef.current = g;
 
-      initScene();
+      if (rebuildScene) {
+        initScene();
+      }
 
-      const buildStaticLayer = () => {
-        const scale = Math.min(dpr, window.devicePixelRatio || 1);
-        const layer = document.createElement("canvas");
-        layer.width = canvas.width;
-        layer.height = canvas.height;
-
-        const lctx = layer.getContext("2d", { alpha: false });
-        if (!lctx) return;
-
-        lctx.setTransform(scale, 0, 0, scale, 0, 0);
-
-        lctx.fillStyle = FALLBACK_BG;
-        lctx.fillRect(0, 0, w, h);
-
-        const cfg = cfgRef.current;
-        lctx.save();
-        lctx.globalAlpha = cfg.dotAlpha;
-        lctx.fillStyle = "rgba(255,255,255,1)";
-        lctx.beginPath();
-        for (let i = 0; i < cfg.dots; i++) {
-          const seed = (5000 + i * 91) | 0;
-          const x = hash1i(seed + 1) * w;
-          const y = hash1i(seed + 2) * h;
-          const r = 0.7 + hash1i(seed + 3) * 1;
-          lctx.moveTo(x + r, y);
-          lctx.arc(x, y, r, 0, Math.PI * 2);
-        }
-        lctx.fill();
-        lctx.restore();
-
-        staticLayerRef.current = layer;
-      };
-      buildStaticLayer();
+      // Static layer rebuild is expensive; do it only when scene changes (or first time)
+      if (rebuildScene || !staticLayerRef.current) {
+        buildStaticLayer();
+      }
     };
 
     const onResize = () => {
@@ -352,17 +389,23 @@ function BackgroundSystem() {
       const linesN = Math.floor(cfg.lines * den);
       const nodesN = Math.floor(cfg.nodes * den);
 
+      const sceneH = sceneSizeRef.current.h || h;
+
+      // Draw static layer (top), fill extra (if viewport got taller due to toolbars)
       const layer = staticLayerRef.current;
       if (layer) {
-        ctx.drawImage(layer, 0, 0, w, h);
+        const topH = Math.min(sceneH, h);
+        ctx.drawImage(layer, 0, 0, w, topH);
+        if (h > topH) {
+          ctx.fillStyle = FALLBACK_BG;
+          ctx.fillRect(0, topH, w, h - topH);
+        }
       } else {
         ctx.fillStyle = FALLBACK_BG;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // ========================================================================
-      // FIX SCATTI: Use cached gradient instead of creating new one
-      // ========================================================================
+      // Draw animated lines using cached gradient
       const lineGradient = lineGradientRef.current;
       if (lineGradient) {
         ctx.save();
@@ -371,7 +414,7 @@ function BackgroundSystem() {
 
         const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.4);
         ctx.globalAlpha = cfg.lineAlpha * (0.75 + 0.25 * pulse);
-        ctx.strokeStyle = lineGradient; // ✅ Cached gradient
+        ctx.strokeStyle = lineGradient;
 
         const seg = Math.max(10, cfg.segments);
         const dx = w / seg;
@@ -395,6 +438,7 @@ function BackgroundSystem() {
         ctx.restore();
       }
 
+      // Nodes (glow sprite)
       const sprite = glowSpriteRef.current;
       if (sprite && nodesN > 0) {
         const nodes = nodesRef.current;
@@ -443,12 +487,18 @@ function BackgroundSystem() {
         ctx.restore();
       }
 
+      // Fade overlay: base it on stable scene height; fill only if visible in current viewport
       const fg = fadeGradientRef.current;
       if (fg) {
         ctx.save();
         ctx.globalAlpha = 1;
         ctx.fillStyle = fg;
-        ctx.fillRect(0, h * cfg.fadeStart, w, h * (1 - cfg.fadeStart));
+
+        const yStart = sceneH * cfg.fadeStart;
+        if (h > yStart) {
+          ctx.fillRect(0, yStart, w, h - yStart);
+        }
+
         ctx.restore();
       }
     };
@@ -468,9 +518,13 @@ function BackgroundSystem() {
 
       draw(timeRef.current);
 
+      // Update nodes movement; wrap using stable scene bounds (so they don't jump on toolbar height)
       const cfg = cfgRef.current;
       const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
+
+      const sceneW = sceneSizeRef.current.w || w;
+      const sceneH = sceneSizeRef.current.h || h;
 
       for (let i = 0; i < nodesN; i++) {
         const p = nodesRef.current[i];
@@ -481,10 +535,12 @@ function BackgroundSystem() {
 
         const mx = 60;
         const my = 60;
-        if (p.x < -mx) p.x = w + mx;
-        if (p.x > w + mx) p.x = -mx;
-        if (p.y < -my) p.y = h + my;
-        if (p.y > h + my) p.y = -my;
+
+        if (p.x < -mx) p.x = sceneW + mx;
+        if (p.x > sceneW + mx) p.x = -mx;
+
+        if (p.y < -my) p.y = sceneH + my;
+        if (p.y > sceneH + my) p.y = -my;
       }
     };
 
@@ -513,9 +569,6 @@ function BackgroundSystem() {
     );
   }
 
-  // ============================================================================
-  // FIX SCATTI: Static gradient (no Math.sin animation = no DOM re-layout)
-  // ============================================================================
   return (
     <div className="absolute inset-0 pointer-events-none">
       <canvas
