@@ -169,7 +169,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
                 onClick={onClose}
                 aria-label="Chiudi menu"
                 className={cn(
-                  'group relative p-3 rounded-full',
+                  'group relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full',
                   'border border-white/12 bg-white/5 backdrop-blur-md',
                   'hover:bg-white/8 hover:border-white/18',
                   'transition-all duration-300',
