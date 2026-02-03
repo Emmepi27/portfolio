@@ -171,7 +171,13 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50'
                 )}
                 aria-label="Home"
-                onClick={onClose}
+                onClick={(e) => {
+                  if (activeKey === 'home') {
+                    e.preventDefault();
+                    document.getElementById('scroll-root')?.scrollTo(0, 0);
+                  }
+                  onClose();
+                }}
               >
                 <span className="grid h-9 w-9 place-items-center rounded-xl bg-white/5 border border-white/10 text-white font-semibold">
                   M

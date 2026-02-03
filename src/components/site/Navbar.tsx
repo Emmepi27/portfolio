@@ -34,10 +34,18 @@ function getActiveKey(pathname: string): NavItemKey {
 }
 
 function BrandMark() {
+  const pathname = usePathname() || '/';
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (pathname === '/') {
+      e.preventDefault();
+      document.getElementById('scroll-root')?.scrollTo(0, 0);
+    }
+  };
   return (
     <Link
       href="/"
       aria-label="Home"
+      onClick={handleClick}
       className={cn(
         'inline-flex items-center gap-2 rounded-xl px-2 py-2',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50'
