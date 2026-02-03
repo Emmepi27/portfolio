@@ -24,14 +24,13 @@ export default function HomePage() {
           </p>
 
           <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
-            Sviluppo GIS/PostGIS e web-app che
-            <span className="text-amber-300"> producono valore.</span>
+            Siti e web-app veloci, indicizzabili e facili da mantenere.
           </h1>
 
           <p className="mt-6 max-w-2xl text-zinc-300">
-            Sviluppo siti e web-app con focus su performance, SEO e manutenzione.
-            Specializzazione in dati geografici e applicazioni GIS/PostGIS senza perdere UX.
-            Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e la <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">storia</Link>.
+            Refactor, performance (Core Web Vitals) e SEO tecnico per progetti che devono reggere produzione e manutenzione.
+            Specialità WebGIS/PostGIS quando servono mappe, tracce e dati geospaziali — senza sacrificare UX.
+            Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">come lavoro</Link>.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
