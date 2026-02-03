@@ -122,6 +122,9 @@ function BackgroundSystem() {
     const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) return;
 
+    const scrollRoot = document.getElementById("scroll-root");
+    const scrollTarget: HTMLElement | Window = scrollRoot ?? window;
+
     const ensureGlowSprite = () => {
       if (glowSpriteRef.current) return;
       const s = document.createElement("canvas");
@@ -266,6 +269,7 @@ function BackgroundSystem() {
     };
 
     const onResize = () => {
+      if (isScrolling) return;
       if (resizeTimeout) clearTimeout(resizeTimeout);
       resizeTimeout = setTimeout(() => {
         resizeTimeout = null;
@@ -280,6 +284,21 @@ function BackgroundSystem() {
         onResize();
       }, RESIZE_THROTTLE_MS);
     };
+
+    let scrollEndTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isScrolling = false;
+    const SCROLL_END_MS = 220;
+    const onScroll = () => {
+      isScrolling = true;
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      scrollEndTimeout = setTimeout(() => {
+        scrollEndTimeout = null;
+        isScrolling = false;
+        setSize();
+      }, SCROLL_END_MS);
+    };
+
+    scrollTarget.addEventListener("scroll", onScroll, { passive: true });
 
     const resizeObs = new ResizeObserver(onResizeThrottled);
     resizeObs.observe(root);
@@ -453,6 +472,8 @@ function BackgroundSystem() {
 
     return () => {
       syncRunningRef.current = null;
+      scrollTarget.removeEventListener("scroll", onScroll);
+      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("resize", onResize);
 
@@ -473,15 +494,11 @@ function BackgroundSystem() {
   return (
     <div
       ref={rootRef}
-      className="fixed left-0 top-0 pointer-events-none overflow-hidden"
-      style={{ willChange: "transform" }}
+      className="fixed left-0 top-0 pointer-events-none"
+      style={{ width: "100vw", height: "100svh" }}
       aria-hidden="true"
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute left-0 top-0"
-        style={{ width: "100%", height: "100%", pointerEvents: "none" }}
-      />
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       <div
         className="absolute inset-0 opacity-25"
         style={{

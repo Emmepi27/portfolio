@@ -33,13 +33,14 @@ const LOW_END_DPR = 1;
 const OFF_FPS = 0;
 const OFF_DPR = 1;
 
-// Menu open detection (current reality in your app)
+// La tua “verità”: menu aperto = esiste l’overlay node con data-bg-zone="menu-overlay"
 const MENU_OVERLAY_SELECTOR = `[data-bg-zone="menu-overlay"]`;
+const SCROLL_ROOT_ID = "scroll-root";
 
-// Optional: freeze commits during scroll (helps with toolbar/URL bar jitter on mobile)
+// Scroll gate: blocca commit durante scroll, commit una volta finito
 const SCROLL_END_MS = 220;
 
-// Density is now global (no zones)
+// Densità globale (no zones)
 const DENSITY_MAIN = 1;
 const DENSITY_MENU = 0.5;
 
@@ -108,51 +109,44 @@ function isMenuOpen(): boolean {
   return Boolean(document.querySelector(MENU_OVERLAY_SELECTOR));
 }
 
+function getScrollRoot(): HTMLElement | null {
+  if (typeof document === "undefined") return null;
+  return document.getElementById(SCROLL_ROOT_ID);
+}
+
 export function useBackgroundPolicy(): RuntimeState {
   const [state, setState] = React.useState<RuntimeState>(() => {
     const base0 = computePolicyState();
-    const visible0 =
-      typeof document !== "undefined" ? document.visibilityState === "visible" : false;
+    const visible0 = typeof document !== "undefined" ? document.visibilityState === "visible" : false;
     const menu0 = isMenuOpen();
+
     const zone0: BgZone = menu0 ? "menu-overlay" : "main";
     const density0 = menu0 ? DENSITY_MENU : DENSITY_MAIN;
+
+    // Se menu aperto, spegni background (meno jitter + meno distrazione)
     const running0 = visible0 && !menu0 && base0.profile !== "off" && base0.fps > 0;
 
-    return {
-      ...base0,
-      visible: visible0,
-      zone: zone0,
-      density: density0,
-      running: running0,
-    };
+    return { ...base0, visible: visible0, zone: zone0, density: density0, running: running0 };
   });
 
   React.useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
+    const scrollRoot = getScrollRoot();
+    const scrollTarget: HTMLElement | Window = scrollRoot ?? window;
+
     const baseRef = { current: computePolicyState() };
     const menuOpenRef = { current: isMenuOpen() };
     const visibleRef = { current: document.visibilityState === "visible" };
 
-    const lastRef: {
+    const lastRef = {
       current: {
-        profile: BackgroundProfile;
-        fps: number;
-        dpr: number;
-        visible: boolean;
-        menuOpen: boolean;
-        zone: BgZone;
-        density: number;
-        running: boolean;
-      };
-    } = {
-      current: {
-        profile: baseRef.current.profile,
+        profile: baseRef.current.profile as BackgroundProfile,
         fps: baseRef.current.fps,
         dpr: baseRef.current.dpr,
         visible: visibleRef.current,
         menuOpen: menuOpenRef.current,
-        zone: menuOpenRef.current ? "menu-overlay" : "main",
+        zone: (menuOpenRef.current ? "menu-overlay" : "main") as BgZone,
         density: menuOpenRef.current ? DENSITY_MENU : DENSITY_MAIN,
         running:
           visibleRef.current &&
@@ -164,15 +158,15 @@ export function useBackgroundPolicy(): RuntimeState {
 
     let rafQueued = 0;
 
-    // Scroll gate (optional but cheap)
-    let isScrollingFlag = false;
+    // Scroll gate
+    let isScrolling = false;
     let pendingCommit = false;
-    let scrollEndTimeout = 0;
+    let scrollEndTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const commit = () => {
       rafQueued = 0;
 
-      if (isScrollingFlag) {
+      if (isScrolling) {
         pendingCommit = true;
         return;
       }
@@ -198,28 +192,12 @@ export function useBackgroundPolicy(): RuntimeState {
 
       if (!changed) return;
 
-      lastRef.current = {
-        profile: base.profile,
-        fps: base.fps,
-        dpr: base.dpr,
-        visible,
-        menuOpen,
-        zone,
-        density,
-        running,
-      };
-
-      setState({
-        ...base,
-        visible,
-        zone,
-        density,
-        running,
-      });
+      lastRef.current = { profile: base.profile, fps: base.fps, dpr: base.dpr, visible, menuOpen, zone, density, running };
+      setState({ ...base, visible, zone, density, running });
     };
 
     const scheduleCommit = () => {
-      if (isScrollingFlag) {
+      if (isScrolling) {
         pendingCommit = true;
         return;
       }
@@ -228,10 +206,10 @@ export function useBackgroundPolicy(): RuntimeState {
     };
 
     const onScroll = () => {
-      isScrollingFlag = true;
+      isScrolling = true;
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-      scrollEndTimeout = window.setTimeout(() => {
-        isScrollingFlag = false;
+      scrollEndTimeout = setTimeout(() => {
+        isScrolling = false;
         if (pendingCommit) {
           pendingCommit = false;
           scheduleCommit();
@@ -239,9 +217,8 @@ export function useBackgroundPolicy(): RuntimeState {
       }, SCROLL_END_MS);
     };
 
-    const scrollRoot = document.getElementById("scroll-root");
-    const scrollTarget = scrollRoot ?? window;
-    scrollTarget.addEventListener("scroll", onScroll, { passive: true });
+    // NB: scroll listener sul vero scroll container
+    (scrollTarget as any).addEventListener("scroll", onScroll, { passive: true });
 
     const onBaseUpdate = () => {
       baseRef.current = computePolicyState();
@@ -261,14 +238,13 @@ export function useBackgroundPolicy(): RuntimeState {
     mqReduced.addEventListener("change", onBaseUpdate);
     mqCoarse.addEventListener("change", onBaseUpdate);
 
-    // Menu open detection via presence of overlay node (your current setup)
-    let menuRefreshTimeout = 0;
+    // Menu open detection: osserva SEMPRE body (evita falsi negativi se osservi nav/header)
+    let menuRefreshTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const refreshMenu = () => {
       if (menuRefreshTimeout) clearTimeout(menuRefreshTimeout);
-
-      menuRefreshTimeout = window.setTimeout(() => {
-        menuRefreshTimeout = 0;
+      menuRefreshTimeout = setTimeout(() => {
+        menuRefreshTimeout = null;
         const now = isMenuOpen();
         if (now !== menuOpenRef.current) {
           menuOpenRef.current = now;
@@ -277,16 +253,14 @@ export function useBackgroundPolicy(): RuntimeState {
       }, 30);
     };
 
-    // Initial + observe changes
     refreshMenu();
     const mo = new MutationObserver(refreshMenu);
-    const navTarget = document.querySelector("nav") || document.querySelector("header") || document.body;
-    mo.observe(navTarget, { childList: true, subtree: true });
+    mo.observe(document.body, { childList: true, subtree: true });
 
     scheduleCommit();
 
     return () => {
-      scrollTarget.removeEventListener("scroll", onScroll);
+      (scrollTarget as any).removeEventListener("scroll", onScroll);
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
 
       window.removeEventListener("resize", onBaseUpdate);
