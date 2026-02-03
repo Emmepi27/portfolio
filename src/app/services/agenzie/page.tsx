@@ -180,7 +180,7 @@ export default function AgenziePage() {
               key={s.step}
               className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
             >
-              <span className="text-xs text-amber-300/80">{s.step}</span>
+              <span className="text-xs text-amber-300">{s.step}</span>
               <h3 className="mt-2 font-medium">{s.title}</h3>
               <p className="mt-1 text-sm text-zinc-300">{s.desc}</p>
             </li>

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import { Manrope, Bodoni_Moda } from "next/font/google";
+import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
 import Navbar from "@/components/site/Navbar";
+import BackgroundSystemClient from "@/components/background/BackgroundSystemClient";
 
 const sans = Manrope({ subsets: ["latin"], variable: "--font-sans" });
 const serif = Bodoni_Moda({ subsets: ["latin"], variable: "--font-serif" });
@@ -57,6 +59,12 @@ export default function RootLayout({
   return (
     <html lang="it" className={`${sans.variable} ${serif.variable}`}>
       <body className="min-h-dvh bg-black text-zinc-100 antialiased">
+        <div
+          className="fixed inset-0 -z-10 overflow-hidden background-fallback"
+          aria-hidden="true"
+        >
+          <BackgroundSystemClient />
+        </div>
         <JsonLd data={webSiteJsonLd} />
         <JsonLd data={personJsonLd} />
         <a
@@ -66,12 +74,18 @@ export default function RootLayout({
           Salta al contenuto
         </a>
         <Navbar />
-        <main id="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
+        <main id="main" data-bg-zone="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
           {children}
         </main>
-        <footer className="border-t border-white/10">
-          <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400">
-            © {new Date().getFullYear()} {site.name}
+        <footer data-bg-zone="footer" className="border-t border-white/10">
+          <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span>© {new Date().getFullYear()} {site.name}</span>
+            <Link
+              href="/services/agenzie"
+              className="text-zinc-400 hover:text-zinc-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+            >
+              Per agenzie
+            </Link>
           </div>
         </footer>
         <Analytics />

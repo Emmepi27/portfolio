@@ -16,9 +16,9 @@ export default function HomePage() {
 
   return (
     <div className="space-y-14">
-      <section className="pt-6 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start" aria-labelledby="hero-heading">
+      <section data-bg-zone="hero" className="pt-6 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start" aria-labelledby="hero-heading">
         <div className="min-w-0 lg:col-span-7">
-          <p className="text-xs tracking-[0.25em] text-amber-300/80">
+          <p className="text-xs tracking-[0.25em] text-amber-300">
             WEB · GIS · POSTGIS · SEO
           </p>
 
@@ -61,7 +61,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="space-y-6">
+      <section data-bg-zone="selection" className="space-y-6">
         <div className="flex items-end justify-between gap-6">
           <h2 className="font-[var(--font-serif)] text-2xl">Selezione</h2>
           <Link href="/work" className="text-sm text-zinc-300 hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">

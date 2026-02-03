@@ -18,6 +18,11 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Fallback when background canvas is not mounted (SSR, reduced-motion, loading) */
+.background-fallback {
+  background: var(--background);
+}
+
 /* Focus-visible ring for better keyboard navigation */
 a:focus-visible,
 button:focus-visible,

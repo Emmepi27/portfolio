@@ -75,7 +75,7 @@ function NavLink({ href, label, isActive }: NavLinkProps) {
         'after:absolute after:bottom-0 after:left-0 after:right-0 after:h-px after:rounded-full',
         'after:bg-gradient-to-r after:from-transparent after:via-white/35 after:to-transparent',
         'after:scale-x-0 after:origin-center after:transition-transform after:duration-250 hover:after:scale-x-100',
-        isActive ? 'text-white' : 'text-neutral-400 hover:text-neutral-100'
+        isActive ? 'text-white' : 'text-zinc-300 hover:text-neutral-100'
       )}
     >
       {label}

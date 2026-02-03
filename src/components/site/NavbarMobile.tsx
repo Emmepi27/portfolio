@@ -110,6 +110,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
             transition={{ duration: 0.35 }}
             onClick={onClose}
             className="fixed inset-0 z-[60] bg-black/70"
+            data-bg-zone="menu-overlay"
             aria-hidden="true"
           />
 

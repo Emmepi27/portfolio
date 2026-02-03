@@ -24,6 +24,11 @@
 .DS_Store
 *.pem
 
+# lighthouse reports (regression gate)
+.lighthouse-*.json
+# performance trace test
+.perf-test-trace.json
+
 # debug
 npm-debug.log*
 yarn-debug.log*
