@@ -90,6 +90,33 @@ export type Project = {
         "Audience estesa con EN",
       ],
     },
+    {
+      slug: "jiwa-creative-studio",
+      title: "Jiwa — Creative Studio (Next.js + Three.js)",
+      year: "2025",
+      tags: ["Next.js", "React", "TypeScript", "Three.js"],
+      stack: ["Next.js", "React", "TypeScript", "Tailwind", "Three.js"],
+      summary:
+        "Sito studio creativo con componenti custom e 3D leggero, attenzione a performance e UX.",
+      problem:
+        "Sito vetrina premium con identità forte e interazioni 3D senza sacrificare performance.",
+      constraints: [
+        "Mobile-first, CWV sotto controllo",
+        "Niente animazioni pesanti",
+        "SEO pulito",
+      ],
+      solution: [
+        "Architettura a componenti, progressive enhancement per il 3D",
+        "Asset optimization e lazy loading",
+        "Metadata e structured data per indicizzazione",
+      ],
+      impact: [
+        "Esperienza immersiva senza layout shift",
+        "Base performance-friendly",
+        "Manutenzione semplice su stack noto",
+      ],
+      links: { demo: "https://jiwacreativestudio.com/it" },
+    },
   ];
   
   export function getProject(slug: string) {

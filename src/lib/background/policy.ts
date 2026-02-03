@@ -239,7 +239,8 @@ export function useBackgroundPolicy(): RuntimeState {
 
     refreshMenu();
     const mo = new MutationObserver(refreshMenu);
-    mo.observe(document.body, { childList: true, subtree: true });
+    const navTarget = document.querySelector('nav') || document.querySelector('header') || document.body;
+    mo.observe(navTarget, { childList: true, subtree: true });
 
     // first commit
     scheduleCommit();

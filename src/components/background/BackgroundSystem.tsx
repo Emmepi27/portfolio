@@ -5,6 +5,7 @@ import { useBackgroundPolicy } from "@/lib/background/policy";
 
 const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
+const SCROLL_PAUSE_MS = 120;
 
 type Config = {
   lines: number;
@@ -131,10 +132,11 @@ export default function BackgroundSystem() {
   const nodesRef = React.useRef<Node[]>([]);
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
-  const glowRef = React.useRef<HTMLCanvasElement | null>(null);
+  const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
 
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
+  const lastScrollRef = React.useRef(0);
 
   React.useEffect(() => {
     densityRef.current = density;
@@ -168,28 +170,29 @@ export default function BackgroundSystem() {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) return;
 
-    const buildGlow = () => {
-      const s = 64;
-      const c = document.createElement("canvas");
-      c.width = s;
-      c.height = s;
-      const gctx = c.getContext("2d");
-      if (!gctx) return;
-      const cx = s / 2;
+    const ensureGlowSprite = () => {
+      if (glowSpriteRef.current) return;
 
-      const grad = gctx.createRadialGradient(cx, cx, 0, cx, cx, cx);
-      grad.addColorStop(0, "rgba(255,255,255,0.35)");
-      grad.addColorStop(1, "rgba(255,255,255,0)");
+      const s = document.createElement("canvas");
+      const size = 64;
+      s.width = size;
+      s.height = size;
 
-      gctx.fillStyle = grad;
-      gctx.fillRect(0, 0, s, s);
+      const sctx = s.getContext("2d");
+      if (!sctx) return;
 
-      glowRef.current = c;
+      const r = size / 2;
+      const g = sctx.createRadialGradient(r, r, 0, r, r, r);
+      g.addColorStop(0, "rgba(255,255,255,0.35)");
+      g.addColorStop(1, "rgba(255,255,255,0)");
+      sctx.fillStyle = g;
+      sctx.fillRect(0, 0, size, size);
+
+      glowSpriteRef.current = s;
     };
-    buildGlow();
 
     let w = 0;
     let h = 0;
@@ -218,6 +221,8 @@ export default function BackgroundSystem() {
     };
 
     const setSize = () => {
+      ensureGlowSprite();
+
       const cw = canvas.clientWidth;
       const ch = canvas.clientHeight;
       if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h) return;
@@ -279,10 +284,14 @@ export default function BackgroundSystem() {
 
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
+      const inScrollTruce = performance.now() - lastScrollRef.current < SCROLL_PAUSE_MS;
+      const delay = inScrollTruce
+        ? Math.max(SCROLL_PAUSE_MS - (performance.now() - lastScrollRef.current), 0)
+        : RESIZE_DEBOUNCE_MS;
       resizeTimeout = setTimeout(() => {
         resizeTimeout = null;
         setSize();
-      }, RESIZE_DEBOUNCE_MS);
+      }, delay);
     };
 
     const resizeObs = new ResizeObserver(onResize);
@@ -326,7 +335,8 @@ export default function BackgroundSystem() {
       ctx.save();
       ctx.globalCompositeOperation = "lighter";
       ctx.lineWidth = cfg.lineWidth;
-      ctx.globalAlpha = cfg.lineAlpha;
+      const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.5); // 0..1 ogni 4s
+      ctx.globalAlpha = cfg.lineAlpha * (0.7 + 0.3 * pulse);
       ctx.strokeStyle = "rgba(80, 200, 220, 1)";
 
       const seg = Math.max(10, cfg.segments);
@@ -349,24 +359,36 @@ export default function BackgroundSystem() {
       }
       ctx.restore();
 
-      // drifting nodes (tiny glows)
-      ctx.save();
-      ctx.globalCompositeOperation = "lighter";
-      ctx.globalAlpha = cfg.nodeAlpha;
+      // drifting nodes (tiny glows) — sprite once, drawImage per frame
+      const sprite = glowSpriteRef.current;
+      if (sprite && nodesN > 0) {
+        ctx.save();
+        ctx.globalCompositeOperation = "lighter";
+        ctx.globalAlpha = cfg.nodeAlpha;
 
-      const glow = glowRef.current;
-      if (glow) {
         const size = 64;
         for (let i = 0; i < nodesN; i++) {
           const p = nodesRef.current[i];
           if (!p) break;
+
           const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
           const px = p.x + wob * 6;
           const py = p.y + wob * 4;
-          ctx.drawImage(glow, px - size / 2, py - size / 2, size, size);
+
+          ctx.save();
+          ctx.globalAlpha = cfg.nodeAlpha * 0.5;
+          ctx.strokeStyle = "rgba(80,200,220,0.3)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(px, py);
+          ctx.lineTo(px - p.vx * 5, py - p.vy * 5);
+          ctx.stroke();
+          ctx.restore();
+
+          ctx.drawImage(sprite, px - size / 2, py - size / 2, size, size);
         }
+        ctx.restore();
       }
-      ctx.restore();
 
       // readability fade (acts like a safe-zone towards footer)
       const fg = fadeGradientRef.current;
@@ -390,6 +412,8 @@ export default function BackgroundSystem() {
       lastFrameRef.current = now;
 
       if (w <= 0 || h <= 0) return;
+
+      if (performance.now() - lastScrollRef.current < SCROLL_PAUSE_MS) return;
 
       // time in seconds; stable increment even with low fps
       timeRef.current += interval / 1000;
@@ -416,12 +440,20 @@ export default function BackgroundSystem() {
       }
     };
 
+    const onScroll = () => {
+      lastScrollRef.current = performance.now();
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("wheel", onScroll, { passive: true });
+
     syncRunningRef.current = syncRunning;
     const onVis = () => syncRunning();
     document.addEventListener("visibilitychange", onVis);
     syncRunning();
 
     return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("wheel", onScroll);
       syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
       stopLoop();
@@ -441,11 +473,20 @@ export default function BackgroundSystem() {
   }
 
   return (
-    <canvas
-      ref={canvasRef}
-      className="absolute inset-0 w-full h-full"
-      style={{ pointerEvents: "none" }}
-      aria-hidden="true"
-    />
+    <div className="absolute inset-0 pointer-events-none">
+      <canvas
+        ref={canvasRef}
+        className="absolute inset-0 w-full h-full"
+        style={{ pointerEvents: "none" }}
+        aria-hidden="true"
+      />
+      <div
+        className="absolute inset-0 opacity-30"
+        style={{
+          background:
+            "radial-gradient(circle at 30% 20%, rgba(80,200,220,0.15) 0%, transparent 50%)",
+        }}
+      />
+    </div>
   );
 }

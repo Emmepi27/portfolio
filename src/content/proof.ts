@@ -44,9 +44,8 @@ export const proofCards: ProofCard[] = [
   {
     title: "Delivery rapida",
     subtitle: "Go-live in tempi stretti",
-    description: "superfastmegafurious.com · jiwacreativestudio.com/it",
-    href: "https://superfastmegafurious.com",
-    external: true,
+    description: "Checklist CWV/SEO, messa online completa. Dettagli in servizi e case study.",
+    href: "/services",
   },
 ];
 
