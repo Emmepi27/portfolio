@@ -12,10 +12,23 @@
   --font-mono: var(--font-geist-mono);
 }
 
+html,
 body {
+  overscroll-behavior-y: none;
+}
+
+body {
+  overflow: hidden;
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Scroll container: no rubber band on iOS (scroll here, not on body) */
+#scroll-root {
+  height: 100svh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Fallback when background canvas is not mounted (SSR, reduced-motion, loading) */

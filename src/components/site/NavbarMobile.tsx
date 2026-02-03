@@ -33,23 +33,33 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
     if (!isOpen) setDragY(0);
   }, [isOpen]);
 
-  // iOS-proof scroll lock
+  // iOS-proof scroll lock (uses #scroll-root when present)
   React.useEffect(() => {
     if (!isOpen) return;
 
     const html = document.documentElement;
     const body = document.body;
+    const scrollRoot = document.getElementById('scroll-root');
 
-    scrollYRef.current = window.scrollY;
+    const scrollY = scrollRoot ? scrollRoot.scrollTop : window.scrollY;
+    scrollYRef.current = scrollY;
     prevBodyStyleRef.current = body.getAttribute('style') || '';
     prevHtmlOverflowRef.current = html.style.overflow;
 
     html.style.overflow = 'hidden';
-    body.style.position = 'fixed';
-    body.style.top = `-${scrollYRef.current}px`;
-    body.style.left = '0';
-    body.style.right = '0';
-    body.style.width = '100%';
+    if (scrollRoot) {
+      scrollRoot.style.position = 'fixed';
+      scrollRoot.style.top = `-${scrollY}px`;
+      scrollRoot.style.left = '0';
+      scrollRoot.style.right = '0';
+      scrollRoot.style.width = '100%';
+    } else {
+      body.style.position = 'fixed';
+      body.style.top = `-${scrollY}px`;
+      body.style.left = '0';
+      body.style.right = '0';
+      body.style.width = '100%';
+    }
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -59,8 +69,13 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       html.style.overflow = prevHtmlOverflowRef.current;
-      body.setAttribute('style', prevBodyStyleRef.current);
-      window.scrollTo(0, scrollYRef.current);
+      if (scrollRoot) {
+        scrollRoot.removeAttribute('style');
+        scrollRoot.scrollTop = scrollYRef.current;
+      } else {
+        body.setAttribute('style', prevBodyStyleRef.current);
+        window.scrollTo(0, scrollYRef.current);
+      }
     };
   }, [isOpen, onClose]);
 

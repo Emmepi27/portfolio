@@ -68,30 +68,32 @@ export default function RootLayout({
             <BackgroundSystemClient />
           </Suspense>
         </div>
-        <JsonLd data={webSiteJsonLd} />
-        <JsonLd data={personJsonLd} />
-        <a
-          href="#main"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:ring-2 focus:ring-amber-300"
-        >
-          Salta al contenuto
-        </a>
-        <Navbar />
-        <main id="main" data-bg-zone="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
-          {children}
-        </main>
-        <footer data-bg-zone="footer" className="border-t border-white/10">
-          <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center gap-x-4 gap-y-1">
-            <span>© {new Date().getFullYear()} {site.name}</span>
-            <Link
-              href="/services/agenzie"
-              className="text-zinc-400 hover:text-zinc-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Per agenzie
-            </Link>
-          </div>
-        </footer>
-        <Analytics />
+        <div id="scroll-root">
+          <JsonLd data={webSiteJsonLd} />
+          <JsonLd data={personJsonLd} />
+          <a
+            href="#main"
+            className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-white focus:px-4 focus:py-2 focus:text-black focus:ring-2 focus:ring-amber-300"
+          >
+            Salta al contenuto
+          </a>
+          <Navbar />
+          <main id="main" data-bg-zone="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
+            {children}
+          </main>
+          <footer data-bg-zone="footer" className="border-t border-white/10">
+            <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+              <span>© {new Date().getFullYear()} {site.name}</span>
+              <Link
+                href="/services/agenzie"
+                className="text-zinc-400 hover:text-zinc-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              >
+                Per agenzie
+              </Link>
+            </div>
+          </footer>
+          <Analytics />
+        </div>
       </body>
     </html>
   );

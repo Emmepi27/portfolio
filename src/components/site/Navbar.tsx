@@ -129,10 +129,13 @@ export default function Navbar() {
   const activeKey = React.useMemo(() => getActiveKey(pathname), [pathname]);
 
   React.useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const scrollRoot = document.getElementById('scroll-root');
+    const target = scrollRoot ?? document.documentElement;
+    const getY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
+    const onScroll = () => setScrolled(getY() > 20);
     onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    target.addEventListener('scroll', onScroll, { passive: true });
+    return () => target.removeEventListener('scroll', onScroll);
   }, []);
 
   React.useEffect(() => {

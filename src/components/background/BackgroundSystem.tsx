@@ -7,10 +7,8 @@ const FALLBACK_BG = "#0a0a0a";
 const RESIZE_DEBOUNCE_MS = 150;
 const RESIZE_THROTTLE_MS = 32;
 
-// Mobile browsers often change viewport height during scroll (URL bar/toolbars).
-// We resize the canvas buffer, but we avoid rebuilding the scene unless the change is "real".
-// NOTE: we also gate resizes while scrolling to prevent visible snapping.
-const SCENE_REBUILD_HEIGHT_PX = 120;
+// Consider a "real" height change only above this (rotation, real resize)
+const SCENE_REBUILD_HEIGHT_PX = 220;
 
 type Config = {
   lines: number;
@@ -30,65 +28,13 @@ type Config = {
 function configFor(profile: string): Config {
   switch (profile) {
     case "desktop":
-      return {
-        lines: 28,
-        segments: 100,
-        lineAlpha: 0.12,
-        lineWidth: 1.2,
-        amp: 32,
-        freq: 0.009,
-        speed: 0.2,
-        dots: 160,
-        dotAlpha: 0.09,
-        nodes: 24,
-        nodeAlpha: 0.14,
-        fadeStart: 0.65,
-      };
+      return { lines: 28, segments: 100, lineAlpha: 0.12, lineWidth: 1.2, amp: 32, freq: 0.009, speed: 0.2, dots: 160, dotAlpha: 0.09, nodes: 24, nodeAlpha: 0.14, fadeStart: 0.65 };
     case "mobile":
-      return {
-        lines: 18,
-        segments: 75,
-        lineAlpha: 0.1,
-        lineWidth: 1.1,
-        amp: 24,
-        freq: 0.01,
-        speed: 0.16,
-        dots: 90,
-        dotAlpha: 0.08,
-        nodes: 14,
-        nodeAlpha: 0.11,
-        fadeStart: 0.62,
-      };
+      return { lines: 18, segments: 75, lineAlpha: 0.1, lineWidth: 1.1, amp: 24, freq: 0.01, speed: 0.16, dots: 90, dotAlpha: 0.08, nodes: 14, nodeAlpha: 0.11, fadeStart: 0.62 };
     case "low-end":
-      return {
-        lines: 14,
-        segments: 60,
-        lineAlpha: 0.09,
-        lineWidth: 1.0,
-        amp: 18,
-        freq: 0.011,
-        speed: 0.13,
-        dots: 60,
-        dotAlpha: 0.07,
-        nodes: 10,
-        nodeAlpha: 0.09,
-        fadeStart: 0.6,
-      };
+      return { lines: 14, segments: 60, lineAlpha: 0.09, lineWidth: 1.0, amp: 18, freq: 0.011, speed: 0.13, dots: 60, dotAlpha: 0.07, nodes: 10, nodeAlpha: 0.09, fadeStart: 0.6 };
     default:
-      return {
-        lines: 0,
-        segments: 0,
-        lineAlpha: 0,
-        lineWidth: 1,
-        amp: 0,
-        freq: 0,
-        speed: 0,
-        dots: 0,
-        dotAlpha: 0,
-        nodes: 0,
-        nodeAlpha: 0,
-        fadeStart: 0.6,
-      };
+      return { lines: 0, segments: 0, lineAlpha: 0, lineWidth: 1, amp: 0, freq: 0, speed: 0, dots: 0, dotAlpha: 0, nodes: 0, nodeAlpha: 0, fadeStart: 0.6 };
   }
 }
 
@@ -115,103 +61,73 @@ function noise1(x: number, seedI: number) {
 }
 
 type Line = { y0: number; seed: number; phase: number };
-type Node = {
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  r: number;
-  seed: number;
-};
+type Node = { x: number; y: number; vx: number; vy: number; r: number; seed: number };
+
+function getStableViewportBox() {
+  // Layout-ish viewport: tends to be more stable than visual viewport during URL bar show/hide.
+  const de = document.documentElement;
+
+  // Use the max to bias toward the "largest" layout box (prevents first-scroll jump when bars collapse).
+  const w = Math.round(Math.max(de.clientWidth || 0, window.innerWidth || 0));
+  const h = Math.round(Math.max(de.clientHeight || 0, window.innerHeight || 0));
+
+  return { w: Math.max(1, w), h: Math.max(1, h) };
+}
 
 function BackgroundSystem() {
   const { profile, fps, dpr, running, density } = useBackgroundPolicy();
 
+  const rootRef = React.useRef<HTMLDivElement>(null);
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
   const rafIdRef = React.useRef<number>(0);
   const runningRef = React.useRef(false);
-  const mountedRef = React.useRef(true);
 
   const lastSizeRef = React.useRef({ w: 0, h: 0 });
-
-  // Scene size is a "stable layout size" for lines/nodes.
-  // It updates only on first run or on real resizes (rotation / width change / big height change).
   const sceneSizeRef = React.useRef({ w: 0, h: 0 });
-
-  // Force a scene rebuild on profile change (mobile/desktop/low-end).
   const forceRebuildRef = React.useRef(true);
 
   const frameIntervalRef = React.useRef(1000 / 60);
   const lastFrameRef = React.useRef(0);
-
   const timeRef = React.useRef(0);
+
   const cfgRef = React.useRef<Config>(configFor(profile));
   const densityRef = React.useRef(density);
 
   const linesRef = React.useRef<Line[]>([]);
   const nodesRef = React.useRef<Node[]>([]);
   const nodePositionsRef = React.useRef<Float32Array>(new Float32Array(48));
+
   const fadeGradientRef = React.useRef<CanvasGradient | null>(null);
   const staticLayerRef = React.useRef<HTMLCanvasElement | null>(null);
   const glowSpriteRef = React.useRef<HTMLCanvasElement | null>(null);
-
-  // Cache line gradient (created once per resize).
   const lineGradientRef = React.useRef<CanvasGradient | null>(null);
 
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
 
-  React.useEffect(() => {
-    densityRef.current = density;
-  }, [density]);
+  React.useEffect(() => { densityRef.current = density; }, [density]);
+  React.useEffect(() => { policyRunningRef.current = running; syncRunningRef.current?.(); }, [running]);
+  React.useEffect(() => { forceRebuildRef.current = true; }, [profile]);
+  React.useEffect(() => { frameIntervalRef.current = fps > 0 ? 1000 / fps : 1000; }, [fps]);
+  React.useEffect(() => { cfgRef.current = configFor(profile); }, [profile]);
 
   React.useEffect(() => {
-    policyRunningRef.current = running;
-    syncRunningRef.current?.();
-  }, [running]);
+    if (profile === "off" || typeof window === "undefined" || typeof document === "undefined") return;
 
-  React.useEffect(() => {
-    forceRebuildRef.current = true;
-  }, [profile]);
-
-  React.useEffect(() => {
-    mountedRef.current = true;
-    return () => {
-      mountedRef.current = false;
-      runningRef.current = false;
-      if (rafIdRef.current) cancelAnimationFrame(rafIdRef.current);
-      rafIdRef.current = 0;
-    };
-  }, []);
-
-  React.useEffect(() => {
-    frameIntervalRef.current = fps > 0 ? 1000 / fps : 1000;
-  }, [fps]);
-
-  React.useEffect(() => {
-    cfgRef.current = configFor(profile);
-  }, [profile]);
-
-  React.useEffect(() => {
-    if (profile === "off" || typeof window === "undefined") return;
-
+    const root = rootRef.current;
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!root || !canvas) return;
 
-    const ctx = canvas.getContext("2d", {
-      alpha: false,
-      desynchronized: true,
-    });
+    const ctx = canvas.getContext("2d", { alpha: false, desynchronized: true });
     if (!ctx) return;
 
     const ensureGlowSprite = () => {
       if (glowSpriteRef.current) return;
-
       const s = document.createElement("canvas");
       const size = 80;
       s.width = size;
       s.height = size;
-
       const sctx = s.getContext("2d", { alpha: true });
       if (!sctx) return;
 
@@ -222,7 +138,6 @@ function BackgroundSystem() {
       g.addColorStop(1, "rgba(80, 200, 220, 0)");
       sctx.fillStyle = g;
       sctx.fillRect(0, 0, size, size);
-
       glowSpriteRef.current = s;
     };
 
@@ -231,10 +146,6 @@ function BackgroundSystem() {
 
     let resizeTimeout: ReturnType<typeof setTimeout> | null = null;
     let roThrottleTimeout: ReturnType<typeof setTimeout> | null = null;
-
-    // Scroll gate: during scroll, ignore resizes (toolbar/URL bar), apply once after scroll ends.
-    let isScrolling = false;
-    let scrollEndTimeout: ReturnType<typeof setTimeout> | null = null;
 
     const initScene = () => {
       const cfg = cfgRef.current;
@@ -269,7 +180,6 @@ function BackgroundSystem() {
       if (!lctx) return;
 
       lctx.setTransform(scale, 0, 0, scale, 0, 0);
-
       lctx.fillStyle = FALLBACK_BG;
       lctx.fillRect(0, 0, w, h);
 
@@ -290,34 +200,33 @@ function BackgroundSystem() {
 
       lctx.fill();
       lctx.restore();
-
       staticLayerRef.current = layer;
+    };
+
+    const applyRootBox = () => {
+      const { w: vw, h: vh } = getStableViewportBox();
+      root.style.width = `${vw}px`;
+      root.style.height = `${vh}px`;
     };
 
     const setSize = () => {
       ensureGlowSprite();
 
-      // During scroll, ignore resize events to avoid snapping (mobile URL bar/toolbars).
-      if (isScrolling && sceneSizeRef.current.w !== 0) return;
+      applyRootBox();
 
-      const cw = Math.round(canvas.clientWidth);
-      const ch = Math.round(canvas.clientHeight);
+      const rect = root.getBoundingClientRect();
+      const cw = Math.round(rect.width);
+      const ch = Math.round(rect.height);
       if (cw === lastSizeRef.current.w && ch === lastSizeRef.current.h) return;
 
       lastSizeRef.current = { w: cw, h: ch };
       w = cw;
       h = ch;
 
-      // Decide whether to rebuild scene:
-      // - first run
-      // - forced (profile change)
-      // - width change (rotation / responsive)
-      // - big height change (real resize; not toolbar jitter)
       const prevScene = sceneSizeRef.current;
       const first = prevScene.w === 0 || prevScene.h === 0;
       const sceneWidthChanged = cw !== prevScene.w;
-      const sceneHeightBigChange =
-        Math.abs(ch - prevScene.h) >= SCENE_REBUILD_HEIGHT_PX;
+      const sceneHeightBigChange = Math.abs(ch - prevScene.h) >= SCENE_REBUILD_HEIGHT_PX;
 
       const rebuildScene =
         first || forceRebuildRef.current || sceneWidthChanged || sceneHeightBigChange;
@@ -333,18 +242,15 @@ function BackgroundSystem() {
       canvas.height = Math.max(1, Math.floor(h * scale));
       ctx.setTransform(scale, 0, 0, scale, 0, 0);
 
-      // After resizing, canvas is cleared; fill immediately to avoid a blank flash.
       ctx.fillStyle = FALLBACK_BG;
       ctx.fillRect(0, 0, w, h);
 
-      // Cache line gradient on resize
       const lineGradient = ctx.createLinearGradient(0, 0, w, 0);
       lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
       lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
       lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
       lineGradientRef.current = lineGradient;
 
-      // Fade gradient based on stable scene height
       const cfg = cfgRef.current;
       const sceneH = sceneSizeRef.current.h || h;
 
@@ -355,26 +261,9 @@ function BackgroundSystem() {
       g.addColorStop(1, "rgba(10,10,10,0.95)");
       fadeGradientRef.current = g;
 
-      if (rebuildScene) {
-        initScene();
-      }
-
-      // Static layer rebuild is expensive; do it only when scene changes (or first time)
-      if (rebuildScene || !staticLayerRef.current) {
-        buildStaticLayer();
-      }
+      if (rebuildScene) initScene();
+      if (rebuildScene || !staticLayerRef.current) buildStaticLayer();
     };
-
-    const onScroll = () => {
-      isScrolling = true;
-      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
-      scrollEndTimeout = setTimeout(() => {
-        isScrolling = false;
-        setSize(); // apply once after scroll ends
-      }, 140);
-    };
-
-    window.addEventListener("scroll", onScroll, { passive: true });
 
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
@@ -393,7 +282,7 @@ function BackgroundSystem() {
     };
 
     const resizeObs = new ResizeObserver(onResizeThrottled);
-    resizeObs.observe(canvas.parentElement ?? canvas);
+    resizeObs.observe(root);
     setSize();
 
     const stopLoop = () => {
@@ -409,8 +298,7 @@ function BackgroundSystem() {
     };
 
     const syncRunning = () => {
-      const shouldRun =
-        document.visibilityState === "visible" && policyRunningRef.current;
+      const shouldRun = document.visibilityState === "visible" && policyRunningRef.current;
       if (shouldRun) startLoop();
       else stopLoop();
     };
@@ -418,30 +306,18 @@ function BackgroundSystem() {
     const draw = (tSec: number) => {
       const cfg = cfgRef.current;
       const den = densityRef.current;
+
       const linesN = Math.floor(cfg.lines * den);
       const nodesN = Math.floor(cfg.nodes * den);
-
       const sceneH = sceneSizeRef.current.h || h;
 
-      // Draw static layer:
-      // IMPORTANT: do NOT "compress" it to current viewport height (that causes visible jumps).
       const layer = staticLayerRef.current;
-      if (layer) {
-        ctx.drawImage(layer, 0, 0, w, sceneH);
-        if (h > sceneH) {
-          ctx.fillStyle = FALLBACK_BG;
-          ctx.fillRect(0, sceneH, w, h - sceneH);
-        } else if (h < sceneH) {
-          // If viewport is smaller (toolbar visible), just paint over the bottom cut to keep it stable.
-          ctx.fillStyle = FALLBACK_BG;
-          ctx.fillRect(0, h, w, sceneH - h);
-        }
-      } else {
+      if (layer) ctx.drawImage(layer, 0, 0, w, h);
+      else {
         ctx.fillStyle = FALLBACK_BG;
         ctx.fillRect(0, 0, w, h);
       }
 
-      // Lines
       const lineGradient = lineGradientRef.current;
       if (lineGradient) {
         ctx.save();
@@ -465,16 +341,15 @@ function BackgroundSystem() {
             const nx = x * cfg.freq + tSec * cfg.speed + ln.phase;
             const n = noise1(nx, ln.seed);
             const y = ln.y0 + (n - 0.5) * 2 * cfg.amp;
-
             if (i === 0) ctx.moveTo(x, y);
             else ctx.lineTo(x, y);
           }
           ctx.stroke();
         }
+
         ctx.restore();
       }
 
-      // Nodes (glow sprite)
       const sprite = glowSpriteRef.current;
       if (sprite && nodesN > 0) {
         const nodes = nodesRef.current;
@@ -483,7 +358,6 @@ function BackgroundSystem() {
         for (let i = 0; i < nodesN; i++) {
           const p = nodes[i];
           if (!p) break;
-
           const wob = (noise1(tSec * 0.6 + p.seed, p.seed) - 0.5) * 2;
           positions[i * 2] = p.x + wob * 8;
           positions[i * 2 + 1] = p.y + wob * 5;
@@ -501,10 +375,8 @@ function BackgroundSystem() {
         for (let i = 0; i < nodesN; i++) {
           const p = nodes[i];
           if (!p) break;
-
           const px = positions[i * 2];
           const py = positions[i * 2 + 1];
-
           ctx.moveTo(px, py);
           ctx.lineTo(px - p.vx * 6, py - p.vy * 6);
         }
@@ -523,25 +395,19 @@ function BackgroundSystem() {
         ctx.restore();
       }
 
-      // Fade overlay
       const fg = fadeGradientRef.current;
       if (fg) {
         ctx.save();
         ctx.globalAlpha = 1;
         ctx.fillStyle = fg;
-
         const yStart = sceneH * cfg.fadeStart;
-        if (h > yStart) {
-          ctx.fillRect(0, yStart, w, h - yStart);
-        }
-
+        if (h > yStart) ctx.fillRect(0, yStart, w, h - yStart);
         ctx.restore();
       }
     };
 
     const tick = (now: number) => {
       if (!runningRef.current) return;
-
       rafIdRef.current = requestAnimationFrame(tick);
 
       const interval = frameIntervalRef.current;
@@ -551,10 +417,8 @@ function BackgroundSystem() {
       if (w <= 0 || h <= 0) return;
 
       timeRef.current += interval / 1000;
-
       draw(timeRef.current);
 
-      // Update nodes movement; wrap using stable scene bounds.
       const cfg = cfgRef.current;
       const nodesN = Math.floor(cfg.nodes * densityRef.current);
       const dt = interval / 1000;
@@ -583,14 +447,14 @@ function BackgroundSystem() {
     syncRunningRef.current = syncRunning;
     const onVis = () => syncRunning();
     document.addEventListener("visibilitychange", onVis);
+    window.addEventListener("resize", onResize);
+
     syncRunning();
 
     return () => {
       syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
-      window.removeEventListener("scroll", onScroll);
-
-      if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
+      window.removeEventListener("resize", onResize);
 
       stopLoop();
       resizeObs.disconnect();
@@ -602,21 +466,21 @@ function BackgroundSystem() {
 
   if (profile === "off") {
     return (
-      <div
-        className="absolute inset-0"
-        style={{ backgroundColor: FALLBACK_BG }}
-        aria-hidden="true"
-      />
+      <div className="fixed left-0 top-0 w-full h-full" style={{ backgroundColor: FALLBACK_BG }} aria-hidden="true" />
     );
   }
 
   return (
-    <div className="absolute inset-0 pointer-events-none">
+    <div
+      ref={rootRef}
+      className="fixed left-0 top-0 pointer-events-none overflow-hidden"
+      style={{ willChange: "transform" }}
+      aria-hidden="true"
+    >
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ pointerEvents: "none" }}
-        aria-hidden="true"
+        className="absolute left-0 top-0"
+        style={{ width: "100%", height: "100%", pointerEvents: "none" }}
       />
       <div
         className="absolute inset-0 opacity-25"

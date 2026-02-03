@@ -3,7 +3,7 @@
 import * as React from "react";
 
 export type BackgroundProfile = "off" | "low-end" | "mobile" | "desktop";
-export type BgZone = "hero" | "selection" | "main" | "footer" | "menu-overlay";
+export type BgZone = "main" | "menu-overlay";
 
 export type PolicyState = {
   profile: BackgroundProfile;
@@ -33,41 +33,15 @@ const LOW_END_DPR = 1;
 const OFF_FPS = 0;
 const OFF_DPR = 1;
 
-const IO_THROTTLE_MS = 32;
-const ZONE_SWITCH_HYSTERESIS = 0.15;
+// Menu open detection (current reality in your app)
+const MENU_OVERLAY_SELECTOR = `[data-bg-zone="menu-overlay"]`;
 
-// Scroll gate: freeze policy commits during scroll; commit once after scroll ends.
+// Optional: freeze commits during scroll (helps with toolbar/URL bar jitter on mobile)
 const SCROLL_END_MS = 220;
 
-const ZONE_DENSITY: Record<BgZone, number> = {
-  hero: 1,
-  selection: 1,
-  main: 1,
-  footer: 1,
-  "menu-overlay": 0.5,
-};
-
-const ZONE_PRIORITY: Record<BgZone, number> = {
-  "menu-overlay": 4,
-  footer: 3,
-  hero: 2,
-  selection: 1,
-  main: 0,
-};
-
-const ZONE_FPS_CAP: Record<BgZone, number> = {
-  hero: Number.POSITIVE_INFINITY,
-  selection: Number.POSITIVE_INFINITY,
-  main: Number.POSITIVE_INFINITY,
-  footer: Number.POSITIVE_INFINITY,
-  "menu-overlay": 0,
-};
-
-function applyZoneFps(base: PolicyState, zone: BgZone): PolicyState {
-  const cap = ZONE_FPS_CAP[zone];
-  const fps = cap === Number.POSITIVE_INFINITY ? base.fps : Math.min(base.fps, cap);
-  return { ...base, fps };
-}
+// Density is now global (no zones)
+const DENSITY_MAIN = 1;
+const DENSITY_MENU = 0.5;
 
 function getReducedMotion(): boolean {
   if (typeof window === "undefined") return true;
@@ -129,34 +103,9 @@ export function computePolicyState(): PolicyState {
   };
 }
 
-function pickBestZone(
-  ratios: Partial<Record<BgZone, number>>,
-  menuOpen: boolean,
-  currentZone: BgZone
-): BgZone {
-  if (menuOpen) return "menu-overlay";
-
-  const candidates: BgZone[] = ["footer", "hero", "selection"];
-
-  let best: BgZone = "hero";
-  let bestScore = -1;
-
-  for (const z of candidates) {
-    const r = ratios[z] ?? 0;
-    let score = r * 10 + ZONE_PRIORITY[z] * 0.01;
-
-    if (z === currentZone) score += ZONE_SWITCH_HYSTERESIS;
-
-    if (score > bestScore) {
-      bestScore = score;
-      best = z;
-    }
-  }
-
-  const maxRatio = Math.max(...candidates.map((z) => ratios[z] ?? 0));
-  if (maxRatio < 0.05) return "main";
-
-  return best;
+function isMenuOpen(): boolean {
+  if (typeof document === "undefined") return false;
+  return Boolean(document.querySelector(MENU_OVERLAY_SELECTOR));
 }
 
 export function useBackgroundPolicy(): RuntimeState {
@@ -164,13 +113,13 @@ export function useBackgroundPolicy(): RuntimeState {
     const base0 = computePolicyState();
     const visible0 =
       typeof document !== "undefined" ? document.visibilityState === "visible" : false;
-    const zone0: BgZone = "main";
-    const tuned0 = applyZoneFps(base0, zone0);
-    const density0 = ZONE_DENSITY[zone0];
-    const running0 = visible0 && tuned0.profile !== "off" && tuned0.fps > 0;
+    const menu0 = isMenuOpen();
+    const zone0: BgZone = menu0 ? "menu-overlay" : "main";
+    const density0 = menu0 ? DENSITY_MENU : DENSITY_MAIN;
+    const running0 = visible0 && !menu0 && base0.profile !== "off" && base0.fps > 0;
 
     return {
-      ...tuned0,
+      ...base0,
       visible: visible0,
       zone: zone0,
       density: density0,
@@ -181,114 +130,108 @@ export function useBackgroundPolicy(): RuntimeState {
   React.useEffect(() => {
     if (typeof window === "undefined" || typeof document === "undefined") return;
 
-    const ratiosRef = { current: {} as Partial<Record<BgZone, number>> };
-    const menuOpenRef = { current: false };
     const baseRef = { current: computePolicyState() };
+    const menuOpenRef = { current: isMenuOpen() };
+    const visibleRef = { current: document.visibilityState === "visible" };
 
     const lastRef: {
       current: {
-        zone: BgZone;
-        running: boolean;
-        density: number;
         profile: BackgroundProfile;
         fps: number;
         dpr: number;
         visible: boolean;
+        menuOpen: boolean;
+        zone: BgZone;
+        density: number;
+        running: boolean;
       };
     } = {
       current: {
-        zone: "main",
-        running: false,
-        density: ZONE_DENSITY.main,
-        profile: "desktop",
-        fps: 60,
-        dpr: 1,
-        visible: true,
+        profile: baseRef.current.profile,
+        fps: baseRef.current.fps,
+        dpr: baseRef.current.dpr,
+        visible: visibleRef.current,
+        menuOpen: menuOpenRef.current,
+        zone: menuOpenRef.current ? "menu-overlay" : "main",
+        density: menuOpenRef.current ? DENSITY_MENU : DENSITY_MAIN,
+        running:
+          visibleRef.current &&
+          !menuOpenRef.current &&
+          baseRef.current.profile !== "off" &&
+          baseRef.current.fps > 0,
       },
     };
 
     let rafQueued = 0;
-    let ioThrottleTimeout = 0;
 
-    // Scroll gate state
-    let isScrolling = false;
+    // Scroll gate (optional but cheap)
+    let isScrollingFlag = false;
     let pendingCommit = false;
     let scrollEndTimeout = 0;
-
-    const scheduleCommit = () => {
-      // Freeze commits during scroll; apply once after scroll ends.
-      if (isScrolling) {
-        pendingCommit = true;
-        return;
-      }
-      if (rafQueued) return;
-      if (ioThrottleTimeout) return;
-      rafQueued = window.requestAnimationFrame(commit);
-    };
-
-    const scheduleCommitThrottled = () => {
-      // Freeze commits during scroll; apply once after scroll ends.
-      if (isScrolling) {
-        pendingCommit = true;
-        return;
-      }
-      if (rafQueued || ioThrottleTimeout) return;
-
-      ioThrottleTimeout = window.setTimeout(() => {
-        ioThrottleTimeout = 0;
-        if (rafQueued) return;
-        rafQueued = window.requestAnimationFrame(commit);
-      }, IO_THROTTLE_MS);
-    };
 
     const commit = () => {
       rafQueued = 0;
 
-      // If we got here while scrolling (rAF queued just before scroll starts), bail.
-      if (isScrolling) {
+      if (isScrollingFlag) {
         pendingCommit = true;
         return;
       }
 
       const base = baseRef.current;
-      const visible = document.visibilityState === "visible";
+      const visible = visibleRef.current;
+      const menuOpen = menuOpenRef.current;
 
-      const zone = pickBestZone(ratiosRef.current, menuOpenRef.current, lastRef.current.zone);
-      const density = ZONE_DENSITY[zone];
-
-      const tuned = applyZoneFps(base, zone);
-      const runningNow = visible && tuned.profile !== "off" && tuned.fps > 0;
+      const zone: BgZone = menuOpen ? "menu-overlay" : "main";
+      const density = menuOpen ? DENSITY_MENU : DENSITY_MAIN;
+      const running = visible && !menuOpen && base.profile !== "off" && base.fps > 0;
 
       const prev = lastRef.current;
       const changed =
+        prev.profile !== base.profile ||
+        prev.fps !== base.fps ||
+        prev.dpr !== base.dpr ||
+        prev.visible !== visible ||
+        prev.menuOpen !== menuOpen ||
         prev.zone !== zone ||
-        prev.running !== runningNow ||
         prev.density !== density ||
-        prev.profile !== tuned.profile ||
-        prev.fps !== tuned.fps ||
-        prev.dpr !== tuned.dpr ||
-        prev.visible !== visible;
+        prev.running !== running;
 
       if (!changed) return;
 
       lastRef.current = {
-        zone,
-        running: runningNow,
-        density,
-        profile: tuned.profile,
-        fps: tuned.fps,
-        dpr: tuned.dpr,
+        profile: base.profile,
+        fps: base.fps,
+        dpr: base.dpr,
         visible,
+        menuOpen,
+        zone,
+        density,
+        running,
       };
 
-      setState({ ...tuned, visible, zone, density, running: runningNow });
+      setState({
+        ...base,
+        visible,
+        zone,
+        density,
+        running,
+      });
+    };
+
+    const scheduleCommit = () => {
+      if (isScrollingFlag) {
+        pendingCommit = true;
+        return;
+      }
+      if (rafQueued) return;
+      rafQueued = window.requestAnimationFrame(commit);
     };
 
     const onScroll = () => {
-      isScrolling = true;
+      isScrollingFlag = true;
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
       scrollEndTimeout = window.setTimeout(() => {
-        isScrolling = false;
+        isScrollingFlag = false;
         if (pendingCommit) {
           pendingCommit = false;
           scheduleCommit();
@@ -296,43 +239,29 @@ export function useBackgroundPolicy(): RuntimeState {
       }, SCROLL_END_MS);
     };
 
-    window.addEventListener("scroll", onScroll, { passive: true });
+    const scrollRoot = document.getElementById("scroll-root");
+    const scrollTarget = scrollRoot ?? window;
+    scrollTarget.addEventListener("scroll", onScroll, { passive: true });
 
     const onBaseUpdate = () => {
       baseRef.current = computePolicyState();
       scheduleCommit();
     };
 
+    const onVisUpdate = () => {
+      visibleRef.current = document.visibilityState === "visible";
+      scheduleCommit();
+    };
+
     window.addEventListener("resize", onBaseUpdate);
-    document.addEventListener("visibilitychange", onBaseUpdate);
+    document.addEventListener("visibilitychange", onVisUpdate);
 
     const mqReduced = window.matchMedia(REDUCED_MOTION_QUERY);
     const mqCoarse = window.matchMedia(COARSE_POINTER_QUERY);
     mqReduced.addEventListener("change", onBaseUpdate);
     mqCoarse.addEventListener("change", onBaseUpdate);
 
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          const el = e.target as HTMLElement;
-          const z = el.dataset.bgZone as BgZone | undefined;
-          if (!z) continue;
-          ratiosRef.current[z] = e.isIntersecting ? e.intersectionRatio : 0;
-        }
-        scheduleCommitThrottled();
-      },
-      { threshold: [0, 0.25, 0.5, 0.75, 1] }
-    );
-
-    const observeZone = (z: BgZone) => {
-      const el = document.querySelector(`[data-bg-zone="${z}"]`);
-      if (el) io.observe(el);
-    };
-
-    observeZone("hero");
-    observeZone("selection");
-    observeZone("footer");
-
+    // Menu open detection via presence of overlay node (your current setup)
     let menuRefreshTimeout = 0;
 
     const refreshMenu = () => {
@@ -340,15 +269,15 @@ export function useBackgroundPolicy(): RuntimeState {
 
       menuRefreshTimeout = window.setTimeout(() => {
         menuRefreshTimeout = 0;
-        const menuNow = Boolean(document.querySelector(`[data-bg-zone="menu-overlay"]`));
-
-        if (menuNow !== menuOpenRef.current) {
-          menuOpenRef.current = menuNow;
+        const now = isMenuOpen();
+        if (now !== menuOpenRef.current) {
+          menuOpenRef.current = now;
           scheduleCommit();
         }
-      }, 50);
+      }, 30);
     };
 
+    // Initial + observe changes
     refreshMenu();
     const mo = new MutationObserver(refreshMenu);
     const navTarget = document.querySelector("nav") || document.querySelector("header") || document.body;
@@ -357,19 +286,16 @@ export function useBackgroundPolicy(): RuntimeState {
     scheduleCommit();
 
     return () => {
-      window.removeEventListener("scroll", onScroll);
+      scrollTarget.removeEventListener("scroll", onScroll);
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
 
       window.removeEventListener("resize", onBaseUpdate);
-      document.removeEventListener("visibilitychange", onBaseUpdate);
+      document.removeEventListener("visibilitychange", onVisUpdate);
       mqReduced.removeEventListener("change", onBaseUpdate);
       mqCoarse.removeEventListener("change", onBaseUpdate);
 
-      io.disconnect();
       mo.disconnect();
-
       if (rafQueued) cancelAnimationFrame(rafQueued);
-      if (ioThrottleTimeout) clearTimeout(ioThrottleTimeout);
       if (menuRefreshTimeout) clearTimeout(menuRefreshTimeout);
     };
   }, []);
