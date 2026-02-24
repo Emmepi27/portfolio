@@ -22,30 +22,31 @@ export type Project = {
   export const projects: Project[] = [
     {
       slug: "rsfly",
-      title: "RSFly — Web-GIS IGC → PostGIS 3D",
+      title: "RSFly — IGC Flight Analysis in PostGIS 3D",
       year: "2024–2025",
-      tags: ["WebGIS", "Data", "3D"],
-      stack: ["Django", "GeoDjango", "PostgreSQL", "PostGIS", "MapLibre"],
-      summary:
-        "Prototipo database-centrico: trasforma file IGC in geometrie 3D native e abilita visualizzazione/analisi via web.",
-      problem:
-        "Gestire dati di volo reali e renderli interrogabili/visualizzabili in modo robusto.",
-      constraints: [
-        "Qualità dato variabile (IGC real-world)",
-        "Modello 3D in DB (non solo rendering)",
-        "Query ripetibili e misurabili",
-      ],
-      solution: [
-        "Modello concettuale → schema logico → ORM con vincoli",
-        "Pipeline import IGC → geom 3D in PostGIS",
-        "Visualizzazione web con MapLibre",
-      ],
-      impact: [
-        "Dati coerenti grazie a vincoli e normalizzazione",
-        "Analisi ripetibili via query",
-        "Base solida per metriche e ottimizzazioni",
-      ],
-      timeline: "MVP 2–6 settimane",
+      tags: ["Web GIS", "Flight data", "3D"],
+stack: ["Docker", "Django", "PostgreSQL", "GeoDjango", "PostGIS", "MapLibre"],
+summary:
+  "Prototipo database-centrico: converte file IGC in geometrie 3D native in PostGIS e abilita analisi + visualizzazione web.",
+problem:
+  "Trasformare dati di volo real-world (rumorosi e incompleti) in un modello interrogabile e visualizzabile in modo affidabile.",
+constraints: [
+  "Qualità del dato variabile (IGC da dispositivi e condizioni diverse)",
+  "3D persistente nel database (non solo un effetto di rendering)",
+  "Query ripetibili e verificabili (metriche misurabili, risultati confrontabili)",
+],
+solution: [
+  "Dal modello concettuale allo schema: ORM con vincoli, normalizzazione e integrità referenziale",
+  "Pipeline IGC → parsing/cleaning → geometrie 3D in PostGIS (LINESTRING Z / POINT Z)",
+  "Mappa web con MapLibre per esplorazione del volo e overlay di analisi",
+],
+impact: [
+  "Dal tracciato al modello: normalizzazione, query geospaziali e visual 3D.",
+  "Coerenza e qualità garantite da vincoli e normalizzazione",
+  "Analisi ripetibili via query (comparabili nel tempo e tra voli)",
+  "Fondazione per metriche avanzate e ottimizzazione delle performance",
+],
+timeline: "MVP: 2–6 settimane",
       links: { repo: "https://github.com/Emmepi27/rsfly" },
       screenshots: [
         { src: "/images/work/rsfly/01.webp", alt: "RSFly Web-GIS overview" },
@@ -55,26 +56,34 @@ export type Project = {
     },
     {
       slug: "olivier-estetica-sartoriale",
-      title: "Olivier — Rebuild Next.js (i18n + SEO)",
-      year: "2025–2026",
-      tags: ["Next.js", "SEO", "i18n"],
-      stack: ["Next.js", "React", "TypeScript", "Tailwind", "Framer Motion"],
-      summary:
-        "Sito multilingue con SEO strutturato (metadata + JSON-LD) e attenzione a performance/UX.",
-      problem:
-        "Rebuild luxury con multilingua, SEO locale e performance solide.",
-      constraints: ["IT/EN/DE", "canonical/hreflang + JSON-LD", "minimo JS client"],
-      solution: [
-        "App Router con pre-render",
-        "SEO: metadata dinamici + JSON-LD composable",
-        "Motion rispettoso di prefers-reduced-motion",
-      ],
-      impact: [
-        "~500 visite/mese (traffico organico post-rebuild)",
-        "Architettura SEO riusabile",
-        "Base performance-friendly",
-        "Mantenibilità tramite modelli tipizzati",
-      ],
+title: "Olivier — Luxury website rebuild (Next.js + i18n + Technical SEO)",
+year: "2025–2026",
+tags: ["Next.js", "Technical SEO", "i18n", "Performance", "Schema.org"],
+stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "next-intl"],
+summary:
+  "Rebuild di un sito luxury multi-lingua con focus su SEO locale, architettura i18n pulita e componenti riusabili. Implementati metadata dinamici, hreflang/canonical coerenti e JSON-LD (Organization/LocalBusiness, Breadcrumb, pagine content).",
+problem:
+  "Portare un brand ‘quiet luxury’ su una base moderna: multilingua IT/EN/DE, SEO locale robusta (Roma), UX premium e performance senza dipendere da JS client.",
+constraints: [
+  "IT/EN/DE con routing locale e contenuti non hardcoded",
+  "Canonical + hreflang consistenti su tutte le pagine indicizzabili",
+  "JSON-LD modulare e verificabile",
+  "Minimizzare JS client (server components by default)",
+  "Animazioni eleganti ma accessibili (prefers-reduced-motion)",
+],
+solution: [
+  "Migrazione a Next.js App Router con rendering server-first e componenti tipizzati",
+  "Internationalization con next-intl (messages per namespace) e routing locale consistente",
+  "SEO tecnico: metadata per locale + canonical/hreflang + sitemap/robots, strutturati per evitare duplicati",
+  "Schema.org composable (JsonLd component): Organization/LocalBusiness, BreadcrumbList, ItemList dove utile",
+  "UI system con Tailwind + clsx/tailwind-merge; motion discreto con Framer Motion e fallback accessibile",
+],
+impact: [
+  "UX premium con JS client ridotto e attenzione ai Core Web Vitals",
+  "SEO più robusto: canonical/hreflang coerenti + metadata/JSON-LD centralizzati per evitare duplicati",
+  "Pattern riusabili: i18n + SEO “composable” replicabili su nuove pagine/landing senza sorprese",
+  "Codebase più mantenibile: copy in messages, componenti piccoli tipizzati e convenzioni stabili",
+],
       screenshots: [
         { src: "/images/work/olivier/01.webp", alt: "Olivier homepage" },
         { src: "/images/work/olivier/02.webp", alt: "Olivier page" },
@@ -82,28 +91,28 @@ export type Project = {
     },
     {
       slug: "jiwa-creative-studio",
-      title: "Jiwa — Creative Studio (Next.js + Three.js)",
+      title: "Jiwa Creative Studio — Sito vetrina con hero WebGL e i18n",
       year: "2025",
-      tags: ["Next.js", "React", "TypeScript", "Three.js"],
-      stack: ["Next.js", "React", "TypeScript", "Tailwind", "Three.js"],
+      tags: ["Vite", "React", "TypeScript", "Three.js", "GSAP", "i18n"],
+      stack: ["Vite", "React", "TypeScript", "Tailwind", "Three.js", "GSAP", "Lenis"],
       summary:
-        "Sito studio creativo con componenti custom e 3D leggero, attenzione a performance e UX.",
+        "Sito vetrina per studio creativo: hero WebGL con fallback progressivo, preloader brand, i18n it/en/de, SEO e CWV curati.",
       problem:
-        "Sito vetrina premium con identità forte e interazioni 3D senza sacrificare performance.",
+        "Comunicare identità premium (branding e web design) con un’esperienza immersiva (hero 3D, animazioni) senza penalizzare caricamento, mobile e accessibilità.",
       constraints: [
-        "Mobile-first, CWV sotto controllo",
-        "Niente animazioni pesanti",
-        "SEO pulito",
+        "Mobile-first, Core Web Vitals sotto controllo (LCP, CLS)",
+        "WebGL solo dove supportato; fallback static/gradient per save-data e reduced motion",
+        "SEO tecnico 2026, JSON-LD, multilingua (it/en/de)",
       ],
       solution: [
-        "Architettura a componenti, progressive enhancement per il 3D",
-        "Asset optimization e lazy loading",
-        "Metadata e structured data per indicizzazione",
+        "Hero a tre livelli: THREE.js manuale (HeroField) → R3F particles → gradient static; lazy load canvas 3D dopo first paint",
+        "Preloader con preload font, branch mobile/desktop e fade-out GSAP; ottimizzazione asset e lazy loading",
+        "Metadata, structured data e sitemap per indicizzazione; cookie consent GDPR e GA4",
       ],
       impact: [
-        "Esperienza immersiva senza layout shift",
-        "Base performance-friendly",
-        "Manutenzione semplice su stack noto",
+        "Hero WebGL con fallback a gradient: zero layout shift, esperienza immersiva anche su mobile e con reduced motion.",
+        "Base performante (CWV, code split, 3D lazy) e manutenzione semplice su stack React + Vite + Three.js.",
+        "SEO e i18n pronti per crescita (it/en/de, JSON-LD, technical SEO 2026).",
       ],
       links: { demo: "https://jiwacreativestudio.com/it" },
       screenshots: [

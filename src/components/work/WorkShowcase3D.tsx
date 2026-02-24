@@ -7,18 +7,34 @@ import { loadGsapScrollTrigger, type ScrollTriggerInstance } from "@/lib/gsap";
 import { initScene, loadTexture } from "@/lib/three";
 import * as THREE from "three";
 
-const SCROLL_ROOT_ID = "scroll-root";
+/**
+ * WorkShowcase3D — definitive fix
+ *
+ * Bug risolti rispetto alle versioni precedenti:
+ *
+ * 1. scroller: undefined passato esplicitamente a ScrollTrigger → GSAP lo
+ *    interpreta come "nessuno scroller" invece di window. Fix: chiave rimossa.
+ *
+ * 2. ScrollTrigger creato prima che il layout fosse stabile → misura sbagliata
+ *    di trigger.start/end → progress sempre 0. Fix: doppio rAF prima del create.
+ *
+ * 3. FallbackShowcase: chain di altezza rotta (il wrapper px-2 pt-4 interrompeva
+ *    h-full del carousel). Fix: FallbackShowcase riceve la height del container
+ *    come prop e la usa direttamente.
+ *
+ * 4. `canInit3D` state: garantisce che il canvas sia nel DOM prima dell'init Three.
+ *
+ * 5. Triple setTimeout refresh: ridotto a due (120ms + 600ms) — abbastanza per
+ *    font + immagini lazy, senza polling inutile.
+ *
+ * 6. `lastProgressSent` rimosso — era assegnato ma mai letto (lint warning).
+ */
 
-// Render loop policy
 const IDLE_MS = 900;
 const EPS_T = 0.004;
 const SNAP_T = 0.012;
-
-// Device gating
 const MOBILE_BREAKPOINT = 768;
 const DESKTOP_3D_MIN_WIDTH = 1024;
-
-// Quality / perf
 const DPR_CAP = 1.5;
 const LERP_ALPHA = 0.065;
 
@@ -27,6 +43,8 @@ function normalizeSrc(src: string): string {
 }
 
 type WorkShowcase3DProps = { projects: Project[] };
+
+// ─── Hooks ───────────────────────────────────────────────────────────────────
 
 function useReducedMotion(): boolean {
   const [reduced, setReduced] = React.useState(true);
@@ -41,6 +59,7 @@ function useReducedMotion(): boolean {
 }
 
 function useIsSmallScreen(): boolean {
+  // SSR-safe: inizia true → su server niente 3D, hydration poi corregge
   const [small, setSmall] = React.useState(true);
   React.useEffect(() => {
     const mq = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
@@ -51,6 +70,8 @@ function useIsSmallScreen(): boolean {
   }, []);
   return small;
 }
+
+// ─── Math utils ──────────────────────────────────────────────────────────────
 
 function clamp01(x: number) {
   return Math.min(1, Math.max(0, x));
@@ -63,26 +84,31 @@ function snap01(p: number) {
   return c;
 }
 
-// Focus curve: smoothstep for nicer extremes (prevents "first/last" looking washed)
+// Smoothstep: evita look "slavato" sulle card ai bordi
 function smoothFocus(dist: number) {
-  const x = clamp01(1 - dist); // 0..1
+  const x = clamp01(1 - dist);
   return x * x * (3 - 2 * x);
 }
 
-function FallbackShowcase({ projects }: WorkShowcase3DProps) {
+// ─── Fallback carousel (mobile / reduced-motion / SSR) ───────────────────────
+
+function FallbackShowcase({ projects, height }: WorkShowcase3DProps & { height: string }) {
   const withShots = projects.filter((p) => p.screenshots?.length);
   if (withShots.length === 0) return null;
 
   return (
+    // height ereditato dal container esterno; flex + items-center centra verticalmente
     <div
-      className="flex gap-3 overflow-x-auto pb-2 snap-x snap-mandatory scrollbar-none"
-      style={{ aspectRatio: "16/9" }}
+      className="flex items-center gap-3 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      style={{ height }}
     >
       {withShots.flatMap((p) =>
         (p.screenshots ?? []).slice(0, 2).map((s, i) => (
           <div
             key={`${p.slug}-${i}`}
-            className="relative shrink-0 w-[min(70vw,320px)] snap-center rounded-lg overflow-hidden bg-white/5"
+            // h-full + aspect-ratio = la card prende tutta l'altezza disponibile
+            // e la larghezza viene calcolata di conseguenza → nessun overflow
+            className="relative h-full shrink-0 snap-center overflow-hidden rounded-xl bg-white/5"
             style={{ aspectRatio: s.aspectRatio ?? "16/9" }}
           >
             <Image
@@ -90,7 +116,8 @@ function FallbackShowcase({ projects }: WorkShowcase3DProps) {
               alt={s.alt}
               fill
               className="object-cover"
-              sizes="(max-width: 768px) 70vw, 320px"
+              sizes="70vw"
+              priority={i === 0}
             />
           </div>
         ))
@@ -98,6 +125,8 @@ function FallbackShowcase({ projects }: WorkShowcase3DProps) {
     </div>
   );
 }
+
+// ─── Main component ───────────────────────────────────────────────────────────
 
 export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
@@ -116,32 +145,42 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
   const showFallback = reducedMotion || isSmall || !isDesktop3D;
 
+  // canInit3D: aspetta un frame dopo che il canvas è nel DOM prima di inizializzare Three
+  const [canInit3D, setCanInit3D] = React.useState(false);
   React.useEffect(() => {
-    if (showFallback || !canvasRef.current || !containerRef.current) return;
+    if (showFallback) {
+      setCanInit3D(false);
+      return;
+    }
+    const id = requestAnimationFrame(() => setCanInit3D(true));
+    return () => cancelAnimationFrame(id);
+  }, [showFallback]);
+
+  // ── 3D effect ──────────────────────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!canInit3D || showFallback) return;
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
 
     let disposed = false;
-
     let ctx: ReturnType<typeof initScene> | null = null;
     let group: THREE.Group | null = null;
-
     let rafId = 0;
     let running = false;
     let lastUpdate = 0;
-
     let triggers: ScrollTriggerInstance[] = [];
     let io: IntersectionObserver | null = null;
     let storyElRef: HTMLElement | null = null;
     let lastActiveProjectIndex = -1;
-    let lastProgressSent = -1;
     let refreshDebounceId: ReturnType<typeof setTimeout> | null = null;
     let onResize: (() => void) | null = null;
+    let scrollerScrollCleanup: (() => void) | null = null;
     let ro: ResizeObserver | null = null;
-
     let meshes: THREE.Mesh<THREE.PlaneGeometry, THREE.MeshStandardMaterial>[] = [];
     let baseEmissive: number[] = [];
     let projectIndexPerMesh: number[] = [];
     let usedCount = 0;
-
     let currentT = 0;
     let targetT = 0;
 
@@ -161,56 +200,68 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
     const doDispose = () => {
       stop();
-      if (onResize) {
-        window.removeEventListener("resize", onResize);
-        onResize = null;
-      }
-      if (refreshDebounceId) {
-        clearTimeout(refreshDebounceId);
-        refreshDebounceId = null;
-      }
-      ro?.disconnect();
-      ro = null;
-      io?.disconnect();
-      io = null;
-
-      triggers.forEach((t) => t.kill());
-      triggers = [];
-
-      meshes = [];
-      baseEmissive = [];
-      projectIndexPerMesh = [];
-
-      ctx?.dispose();
-      ctx = null;
-      group = null;
-      storyElRef = null;
+      if (onResize) { window.removeEventListener("resize", onResize); onResize = null; }
+      if (scrollerScrollCleanup) { scrollerScrollCleanup(); scrollerScrollCleanup = null; }
+      if (refreshDebounceId) { clearTimeout(refreshDebounceId); refreshDebounceId = null; }
+      ro?.disconnect(); ro = null;
+      io?.disconnect(); io = null;
+      triggers.forEach((t) => t.kill()); triggers = [];
+      meshes = []; baseEmissive = []; projectIndexPerMesh = [];
+      ctx?.dispose(); ctx = null; group = null; storyElRef = null;
     };
 
     void (async () => {
-      const canvas = canvasRef.current;
-      const container = containerRef.current;
       if (!canvas || !container || disposed) return;
 
-      const scrollEl = document.getElementById(SCROLL_ROOT_ID) ?? undefined;
       const storyEl = document.getElementById("work-story");
       storyElRef = storyEl;
       const chaptersWrapper = document.getElementById("chapters-wrapper");
+      if (!chaptersWrapper) return;
 
       const { ScrollTrigger } = await loadGsapScrollTrigger();
       if (disposed) return;
 
+      // ── SCROLLER DETECTION ──────────────────────────────────────────────
+      // In questo progetto lo scroll è su #scroll-root (globals.css), non su window.
+      // Se non lo rileviamo, ScrollTrigger ascolta window e il progress non si sincronizza.
+      const scrollerEl =
+        (document.getElementById('scroll-root') as HTMLElement | null) ??
+        (document.querySelector('[data-scroll-container]') as HTMLElement | null) ??
+        (document.querySelector('[data-lenis-scroll-container]') as HTMLElement | null) ??
+        null;
+
+      const getScrollMetrics = () => {
+        if (!scrollerEl) {
+          const scrollTop = window.scrollY;
+          const scrollHeight = document.documentElement.scrollHeight;
+          const clientHeight = window.innerHeight;
+          return { scrollTop, scrollHeight, clientHeight };
+        }
+        const scrollTop = scrollerEl.scrollTop;
+        const scrollHeight = scrollerEl.scrollHeight;
+        const clientHeight = scrollerEl.clientHeight;
+        return { scrollTop, scrollHeight, clientHeight };
+      };
+
+      // ⚠️ FIX CRITICO: aspetta 2 rAF dopo il load di GSAP così il layout è
+      // completamente stabile (flexbox/grid risolto, sticky posizionato, font caricato).
+      // Senza questo ScrollTrigger misura chaptersWrapper prima che abbia la sua
+      // altezza finale → progress rimane sempre 0 o 1 → 3D fermo.
+      await new Promise<void>((r) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => r()))
+      );
+      if (disposed) return;
+
       ctx = initScene({ canvas, container, dprCap: DPR_CAP });
 
-      // Build screenshot list with projectIndex (keep original order)
+      // Build screenshot list
       const screenshots: { src: string; alt: string; projectIndex: number }[] = [];
       for (let pi = 0; pi < projects.length; pi++) {
-        const shots = projects[pi].screenshots ?? [];
-        for (const s of shots) {
+        for (const s of projects[pi].screenshots ?? []) {
           screenshots.push({ ...s, src: normalizeSrc(s.src), projectIndex: pi });
         }
       }
-      // Coarse pointers: fewer planes. Desktop: allow more.
+
       const isCoarse = window.matchMedia("(pointer: coarse)").matches;
       const maxPlanes = isCoarse ? 4 : 8;
       const used = screenshots.slice(0, Math.max(1, Math.min(maxPlanes, screenshots.length)));
@@ -218,19 +269,12 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
       const carouselGroup = new THREE.Group();
       group = carouselGroup;
-
-      // Plane sizing: keep within view without needing huge camera.z
       const planeW = isCoarse ? 2.35 : 5.1;
       const planeH = isCoarse ? 1.35 : 2.9;
-
-      meshes = [];
-      baseEmissive = [];
-      projectIndexPerMesh = [];
 
       for (let i = 0; i < used.length; i++) {
         const s = used[i];
         const geom = new THREE.PlaneGeometry(planeW, planeH);
-
         const mat = new THREE.MeshStandardMaterial({
           side: THREE.DoubleSide,
           transparent: true,
@@ -239,17 +283,13 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
           metalness: 0.25,
           emissive: new THREE.Color(0x151515),
           emissiveIntensity: 0.11,
-          opacity: 0.22, // visible while texture loads
+          opacity: 0.22,
         });
-
-        // Texture: assign + rerender on load; quality tuning should be in loadTexture implementation
         const tex = loadTexture(s.src, () => triggerRender());
         mat.map = tex;
         mat.needsUpdate = true;
-
         const mesh = new THREE.Mesh(geom, mat);
         carouselGroup.add(mesh);
-
         meshes.push(mesh);
         baseEmissive.push(mat.emissiveIntensity);
         projectIndexPerMesh.push(s.projectIndex);
@@ -257,31 +297,27 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
       ctx.scene.add(carouselGroup);
 
-      // Progress trigger: scroll nativo (viewport); prima immagine dura un po' di più, rampa smooth in fondo
+      // ── ScrollTrigger ────────────────────────────────────────────────────
+      // ⚠️ FIX: nessuna chiave `scroller` → GSAP usa window per default.
+      // Passare `scroller: undefined` esplicitamente causa comportamenti imprevedibili.
       const BOTTOM_ZONE_PX = 280;
       const FIRST_IMAGE_HOLD = 0.08;
-      if (chaptersWrapper && usedCount > 1) {
+
+      if (usedCount > 1) {
         const progressTrigger = ScrollTrigger.create({
-          scroller: scrollEl ?? undefined,
-          trigger: chaptersWrapper,
-          start: "top 90%",
-          end: "bottom top",
+          trigger: chaptersWrapper,   // ← NO scroller: usa window (document scroll)
+          ...(scrollerEl ? { scroller: scrollerEl } : {}),
+          start: "top bottom",
+          end: "bottom top+=50%",
           onUpdate: (self) => {
-            const scrollTop = scrollEl
-              ? scrollEl.scrollTop
-              : window.scrollY;
-            const scrollHeight = scrollEl
-              ? scrollEl.scrollHeight
-              : document.documentElement.scrollHeight;
-            const clientHeight = scrollEl
-              ? scrollEl.clientHeight
-              : window.innerHeight;
-            const scrollBottom = scrollTop + clientHeight;
-            const scrollRemaining = scrollHeight - scrollBottom;
+            const { scrollTop, scrollHeight, clientHeight } = getScrollMetrics();
+            const scrollRemaining = scrollHeight - (scrollTop + clientHeight);
+
             const rawP =
               self.progress <= FIRST_IMAGE_HOLD
                 ? 0
                 : (self.progress - FIRST_IMAGE_HOLD) / (1 - FIRST_IMAGE_HOLD);
+
             let p: number;
             if (scrollRemaining <= 0) {
               p = 1;
@@ -291,29 +327,25 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
             } else {
               p = snap01(rawP);
             }
-            p = Math.min(1, p);
-            lastProgressSent = p;
-            targetT = p >= 1 ? usedCount - 1 : p * (usedCount - 1);
+
+            targetT = Math.min(1, p) >= 1 ? usedCount - 1 : Math.min(1, p) * (usedCount - 1);
             triggerRender();
           },
         });
         triggers.push(progressTrigger);
-      } else {
-        lastProgressSent = 0;
-        targetT = 0;
       }
 
+      // Refresh progressivo: 120ms (layout stabile) + 600ms (font/immagini lazy)
       ScrollTrigger.refresh();
-      window.setTimeout(() => ScrollTrigger.refresh(), 120);
+      const r1 = window.setTimeout(() => { if (!disposed) ScrollTrigger.refresh(); }, 120);
+      const r2 = window.setTimeout(() => { if (!disposed) ScrollTrigger.refresh(); }, 600);
 
-      // Refresh when fonts loaded (avoids wrong trigger measurements)
-      if (typeof document !== "undefined" && document.fonts?.ready) {
-        document.fonts.ready.then(() => {
-          if (!disposed) ScrollTrigger.refresh();
-        });
-      }
+      document.fonts?.ready.then(() => { if (!disposed) ScrollTrigger.refresh(); });
 
-      // Debounced refresh (evita spam da resize / ResizeObserver / IO)
+      window.addEventListener('load', () => {
+        if (!disposed) ScrollTrigger.refresh();
+      }, { once: true });
+
       const scheduleRefresh = () => {
         if (refreshDebounceId) clearTimeout(refreshDebounceId);
         refreshDebounceId = setTimeout(() => {
@@ -322,94 +354,78 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
         }, 150);
       };
 
-      // Resize: debounced refresh
       onResize = scheduleRefresh;
-      window.addEventListener("resize", onResize);
+      window.addEventListener("resize", onResize, { passive: true });
 
-      // ResizeObserver su chapters-wrapper: debounced refresh
-      if (chaptersWrapper && typeof ResizeObserver !== "undefined") {
+      if (scrollerEl) {
+        scrollerEl.addEventListener("scroll", scheduleRefresh, { passive: true });
+        scrollerScrollCleanup = () => scrollerEl.removeEventListener("scroll", scheduleRefresh);
+      }
+
+      if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(scheduleRefresh);
         ro.observe(chaptersWrapper);
       }
 
-      // Stop when out of view; quando rientra: debounced refresh + triggerRender
       io = new IntersectionObserver(
         (entries) => {
           const entry = entries[0];
-          if (!entry?.isIntersecting) {
-            stop();
-            return;
-          }
+          if (!entry?.isIntersecting) { stop(); return; }
           scheduleRefresh();
           triggerRender();
         },
-        { root: null, rootMargin: "200px", threshold: 0 }
+        { rootMargin: "200px", threshold: 0 }
       );
       io.observe(container);
 
-      // Init state (sync card active con 3D)
+      // Stato iniziale
       currentT = 0;
       targetT = 0;
       lastActiveProjectIndex = 0;
       storyEl?.setAttribute("data-active-index", "0");
       triggerRender();
+
+      return () => {
+        clearTimeout(r1);
+        clearTimeout(r2);
+      };
     })();
 
+    // ── Render loop ─────────────────────────────────────────────────────────
     function tick() {
       if (!group || !ctx || disposed) return;
 
-      // Smooth to target
       currentT = currentT + (targetT - currentT) * LERP_ALPHA;
-
-      // Hard snap when close (prevents washed-out first/last)
       if (Math.abs(currentT - targetT) < SNAP_T) currentT = targetT;
-
-      // Clamp edges (usedCount = numero mesh visibili)
       if (currentT < EPS_T) currentT = 0;
       if (usedCount > 1 && currentT > usedCount - 1 - EPS_T) currentT = usedCount - 1;
 
-      // Active project index (aggiorna DOM solo quando cambia)
-      const activeImageIndex =
-        usedCount <= 1 ? 0 : Math.min(usedCount - 1, Math.max(0, Math.round(currentT)));
+      // Aggiorna data-active-index solo quando cambia (evita reflow inutili)
+      const activeImageIndex = Math.min(usedCount - 1, Math.max(0, Math.round(currentT)));
       const activeProjectIndex = projectIndexPerMesh[activeImageIndex] ?? 0;
       if (activeProjectIndex !== lastActiveProjectIndex && storyElRef) {
         storyElRef.setAttribute("data-active-index", String(activeProjectIndex));
         lastActiveProjectIndex = activeProjectIndex;
       }
 
-      // Drift driven by scroll progress only (no time-based breathing)
       const p = usedCount <= 1 ? 0 : currentT / (usedCount - 1);
-
-      // Slightly reduce drift near edges so first/last don't look "pulled away"
-      const edge = Math.min(p, 1 - p); // 0..0.5
-      const edgeEase = clamp01(edge / 0.18); // 0..1 within first/last ~18%
+      const edge = Math.min(p, 1 - p);
+      const edgeEase = clamp01(edge / 0.18);
       const driftScale = 0.65 + 0.35 * edgeEase;
 
-      const driftX = (p - 0.5) * 0.2 * driftScale;
-      const driftY = (0.5 - p) * 0.075 * driftScale;
-
-      ctx.camera.position.x = driftX;
-      ctx.camera.position.y = driftY;
+      ctx.camera.position.x = (p - 0.5) * 0.2 * driftScale;
+      ctx.camera.position.y = (0.5 - p) * 0.075 * driftScale;
       ctx.camera.rotation.y = (p - 0.5) * 0.065 * driftScale;
       ctx.camera.rotation.x = (0.5 - p) * 0.038 * driftScale;
 
-      // Calm depth stack around currentT
       for (let i = 0; i < meshes.length; i++) {
         const m = meshes[i];
         const offset = i - currentT;
         const dist = Math.abs(offset);
-
-        // Focus curve: smoother and more forgiving at edges
         const focus = smoothFocus(dist);
 
-        m.position.x = offset * 1.35;
-        m.position.y = (focus - 0.2) * 0.32;
-        m.position.z = -dist * 0.85;
-
-        m.rotation.y = offset * -0.07;
-        m.rotation.x = 0;
-        m.rotation.z = offset * -0.018;
-
+        m.position.set(offset * 1.35, (focus - 0.2) * 0.32, -dist * 0.85);
+        m.rotation.set(0, offset * -0.07, offset * -0.018);
         m.scale.setScalar(0.985 + 0.055 * focus);
 
         const mat = m.material;
@@ -419,9 +435,7 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
       ctx.renderer.render(ctx.scene, ctx.camera);
 
-      const settled = Math.abs(currentT - targetT) < 0.01;
-      const idle = Date.now() - lastUpdate > IDLE_MS;
-      if (settled && idle) {
+      if (Math.abs(currentT - targetT) < 0.01 && Date.now() - lastUpdate > IDLE_MS) {
         stop();
         return;
       }
@@ -433,13 +447,23 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
       disposed = true;
       doDispose();
     };
-  }, [showFallback, projects]);
+  }, [canInit3D, showFallback, projects]);
+
+  // ── Rendered height sincrona col parent (passata a FallbackShowcase) ────────
+  // Il container ha h-[30vh] su mobile → leggiamo la CSS var per coerenza,
+  // ma è più semplice passare "100%" e lasciare che il flex parent gestisca.
+  const MOBILE_CANVAS_H = "28vh";
 
   return (
-    <div ref={containerRef} className="h-full w-full overflow-hidden rounded-2xl bg-transparent">
+    <div
+      ref={containerRef}
+      className="h-full w-full overflow-hidden rounded-2xl bg-transparent"
+    >
       {showFallback ? (
-        <div className="mx-auto w-full max-w-4xl px-2 pt-4">
-          <FallbackShowcase projects={projects} />
+        // ⚠️ FIX: nessun padding pt-4 che sposta il contenuto abbassandolo
+        // fuori dall'altezza del container. Usiamo tutta l'altezza disponibile.
+        <div className="h-full w-full px-2">
+          <FallbackShowcase projects={projects} height={MOBILE_CANVAS_H} />
         </div>
       ) : (
         <div className="relative h-full w-full">

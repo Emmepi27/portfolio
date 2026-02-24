@@ -30,7 +30,7 @@ export default function WorkPage() {
       <JsonLd data={itemListJsonLd} />
 
       {/* HEADER PREMIUM 2026 */}
-      <header className="relative z-10 flex flex-col items-center justify-center pt-12 pb-8 text-center md:pt-20 md:pb-6 w-full max-w-4xl mx-auto px-4">
+      <header className="relative z-10 flex flex-col items-center justify-center pt-12 pb-8 text-center md:pt-20 md:pb-6 w-full max-w-4xl mx-auto px-5">
         
         {/* Micro-eyebrow "Status" Badge */}
         <div className="mb-6 inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-900/50 px-3 py-1.5 text-xs font-medium text-zinc-400 backdrop-blur-md">
@@ -57,15 +57,22 @@ export default function WorkPage() {
 </div>
       </header>
 
-      {/* Full-width showcase: esce da max-w-6xl, overflow-x-clip evita scroll orizzontale */}
-      <div className="relative left-1/2 -ml-[50vw] mt-8 w-screen max-w-none overflow-x-clip z-20">
+      {/* Mobile: solo messaggio invito desktop. Desktop (lg): showcase 3D/sticky. */}
+      <div className="mt-8 w-full px-5 lg:hidden">
+        <div className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-sm px-6 py-10 text-center">
+          <p className="text-sm text-zinc-400 md:text-base">
+            Guarda lo showcase in versione desktop
+          </p>
+        </div>
+      </div>
+      <div className="relative mt-8 z-20 w-full lg:left-1/2 lg:-ml-[50vw] lg:w-screen lg:max-w-none hidden lg:block">
         <div className="w-full min-w-0">
           <WorkShowcaseStory projects={projects} />
         </div>
       </div>
 
       {/* CTA */}
-      <section className="mt-16 w-full max-w-4xl mx-auto px-4 pb-4" aria-labelledby="work-cta-heading">
+      <section className="mt-16 w-full max-w-4xl mx-auto px-5 pb-4" aria-labelledby="work-cta-heading">
         <div className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-sm p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
