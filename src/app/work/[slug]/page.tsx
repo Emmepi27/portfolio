@@ -23,7 +23,7 @@ export async function generateMetadata({
   const p = getProject(normalized);
   if (!p) {
     return {
-      title: "Work",
+      title: "Portfolio",
     };
   }
   return {
@@ -52,7 +52,7 @@ export default async function WorkDetailPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: { "@id": `${base}/` } },
-      { "@type": "ListItem", position: 2, name: "Work", item: { "@id": `${base}/work` } },
+      { "@type": "ListItem", position: 2, name: "Portfolio", item: { "@id": `${base}/work` } },
       { "@type": "ListItem", position: 3, name: p.title, item: { "@id": `${base}/work/${p.slug}` } },
     ],
   };
@@ -62,7 +62,7 @@ export default async function WorkDetailPage({
       <JsonLd data={breadcrumbJsonLd} />
       <header className="space-y-4">
         <Link href="/work" className="text-sm text-zinc-300 hover:text-white">
-          ← Tutti i lavori
+          ← Portfolio
         </Link>
         <div className="text-xs text-zinc-400">{p.year}</div>
         <h1 className="font-[var(--font-serif)] text-4xl">{p.title}</h1>

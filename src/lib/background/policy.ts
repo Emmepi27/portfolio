@@ -218,7 +218,7 @@ export function useBackgroundPolicy(): RuntimeState {
     };
 
     // NB: scroll listener sul vero scroll container
-    (scrollTarget as any).addEventListener("scroll", onScroll, { passive: true });
+    (scrollTarget as EventTarget).addEventListener("scroll", onScroll, { passive: true });
 
     const onBaseUpdate = () => {
       baseRef.current = computePolicyState();
@@ -260,7 +260,7 @@ export function useBackgroundPolicy(): RuntimeState {
     scheduleCommit();
 
     return () => {
-      (scrollTarget as any).removeEventListener("scroll", onScroll);
+      (scrollTarget as EventTarget).removeEventListener("scroll", onScroll);
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
 
       window.removeEventListener("resize", onBaseUpdate);

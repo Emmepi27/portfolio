@@ -25,7 +25,7 @@ export default function NotFound() {
           href="/work"
           className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5"
         >
-          Work
+          Portfolio
         </Link>
       </div>
     </div>

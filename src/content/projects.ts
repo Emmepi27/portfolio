@@ -1,3 +1,5 @@
+export type ProjectScreenshot = { src: string; alt: string; aspectRatio?: string };
+
 export type Project = {
     slug: string;
     title: string;
@@ -12,6 +14,8 @@ export type Project = {
     /** Optional human-readable timeline (e.g. "MVP 2–6 settimane"); fallback to year in UI. */
     timeline?: string;
     links?: { demo?: string; repo?: string };
+    /** Optional screenshots for 3D showcase; paths under /public (e.g. /images/work/<slug>/01.webp). */
+    screenshots?: ProjectScreenshot[];
   };
 
   /** Canonical slugs: lowercase, used for URLs and getProject lookup. */
@@ -43,6 +47,11 @@ export type Project = {
       ],
       timeline: "MVP 2–6 settimane",
       links: { repo: "https://github.com/Emmepi27/rsfly" },
+      screenshots: [
+        { src: "/images/work/rsfly/01.webp", alt: "RSFly Web-GIS overview" },
+        { src: "/images/work/rsfly/02.webp", alt: "RSFly 3D track view" },
+        { src: "/images/work/rsfly/04.webp", alt: "RSFly analysis" },
+      ],
     },
     {
       slug: "olivier-estetica-sartoriale",
@@ -66,28 +75,9 @@ export type Project = {
         "Base performance-friendly",
         "Mantenibilità tramite modelli tipizzati",
       ],
-    },
-    {
-      slug: "atelier14-shopify",
-      title: "Atelier14 — Shopify refactor (bugfix + EN + add-on)",
-      year: "2025",
-      tags: ["E-commerce", "Maintenance", "i18n"],
-      stack: ["Shopify", "Liquid", "JavaScript"],
-      summary:
-        "Bugfix UI, versione inglese e logica add-on (charm) con prezzo incrementale.",
-      problem:
-        "Bug visivi e assenza di EN limitavano conversione e audience.",
-      constraints: ["Tema esistente", "minime regressioni", "no app pesanti"],
-      solution: [
-        "Debug CSS/DOM per rimuovere elementi fantasma",
-        "Struttura contenuti EN",
-        "Add-on charm con logica prezzo",
-      ],
-      impact: [
-        "Shopify Markets (domini + IT/EN) + shipping profiles/checkout debug → pronto per vendite internazionali",
-        "Upsell semplice e chiaro",
-        "Meno bug percepiti su mobile",
-        "Audience estesa con EN",
+      screenshots: [
+        { src: "/images/work/olivier/01.webp", alt: "Olivier homepage" },
+        { src: "/images/work/olivier/02.webp", alt: "Olivier page" },
       ],
     },
     {
@@ -116,6 +106,10 @@ export type Project = {
         "Manutenzione semplice su stack noto",
       ],
       links: { demo: "https://jiwacreativestudio.com/it" },
+      screenshots: [
+        { src: "/images/work/jiwa/01.webp", alt: "Jiwa creative studio" },
+        { src: "/images/work/jiwa/02.webp", alt: "Jiwa 3D section" },
+      ],
     },
   ];
   

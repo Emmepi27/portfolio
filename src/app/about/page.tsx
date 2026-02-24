@@ -12,7 +12,7 @@ export default function AboutPage() {
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <h1 className="font-[var(--font-serif)] text-4xl">About</h1>
+        <h1 className="font-[var(--font-serif)] text-4xl">Chi sono</h1>
         <p className="max-w-2xl text-zinc-300">
           Costruisco prodotti web con approccio engineering-first: obiettivi misurabili, vincoli chiari e delivery pulita.
         </p>

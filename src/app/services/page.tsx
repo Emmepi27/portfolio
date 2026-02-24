@@ -47,7 +47,7 @@ export default function ServicesPage() {
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <h1 className="font-[var(--font-serif)] text-4xl">Services</h1>
+        <h1 className="font-[var(--font-serif)] text-4xl">Servizi</h1>
         <p className="max-w-2xl text-zinc-300">
           Lavoro su due fronti: migliorare siti esistenti (ROI rapido) e costruire
           da zero con performance/SEO by design.

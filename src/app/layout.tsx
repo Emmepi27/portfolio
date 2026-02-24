@@ -58,8 +58,8 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="it" className={`${sans.variable} ${serif.variable}`}>
-      <body className="min-h-dvh bg-black text-zinc-100 antialiased">
+    <html lang="it" className={`${sans.variable} ${serif.variable} overflow-x-hidden`}>
+      <body className="min-h-dvh bg-black text-zinc-100 antialiased overflow-x-hidden">
         <div
           className="fixed inset-0 -z-10 overflow-hidden background-fallback"
           aria-hidden="true"
@@ -82,7 +82,7 @@ export default function RootLayout({
             {children}
           </main>
           <footer data-bg-zone="footer" className="border-t border-white/10">
-            <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center gap-x-4 gap-y-1">
+            <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
               <span>© {new Date().getFullYear()} {site.name}</span>
               <Link
                 href="/services/agenzie"

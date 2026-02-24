@@ -18,6 +18,11 @@ body {
   overscroll-behavior-y: none;
 }
 
+html {
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
 body {
   overflow: hidden;
   background: var(--background);
@@ -25,10 +30,24 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Scroll container: no rubber band on iOS (scroll here, not on body) */
+@keyframes kbd-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+
+/* Scroll container: no rubber band on iOS (scroll here, not on body).
+   overflow-y: scroll forza la scrollbar da subito così non resta "bloccata" fino al layout dello showcase. */
 #scroll-root {
   height: 100svh;
-  overflow-y: auto;
+  overflow-x: hidden;
+  overflow-y: scroll;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
 }

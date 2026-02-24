@@ -13,7 +13,7 @@ export default function ContactPage() {
   return (
     <div className="space-y-10">
       <header className="space-y-3">
-        <h1 className="font-[var(--font-serif)] text-4xl">Contact</h1>
+        <h1 className="font-[var(--font-serif)] text-4xl">Contatti</h1>
         <p className="max-w-2xl text-zinc-300">
           Scrivimi con: obiettivo, contesto, vincoli (stack/SEO/performance) e link del sito.
           Rispondo con priorità e piano d’azione.

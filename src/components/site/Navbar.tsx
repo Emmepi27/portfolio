@@ -18,10 +18,10 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', href: '/', label: 'Home' },
-  { key: 'work', href: '/work', label: 'Work' },
-  { key: 'services', href: '/services', label: 'Services' },
-  { key: 'about', href: '/about', label: 'About' },
-  { key: 'contact', href: '/contact', label: 'Contact' }
+  { key: 'work', href: '/work', label: 'PORTFOLIO' },
+  { key: 'services', href: '/services', label: 'Servizi' },
+  { key: 'about', href: '/about', label: 'Chi sono' },
+  { key: 'contact', href: '/contact', label: 'Contatti' }
 ];
 
 function getActiveKey(pathname: string): NavItemKey {
@@ -44,7 +44,7 @@ function BrandMark() {
   return (
     <Link
       href="/"
-      aria-label="Home"
+      aria-label="Pagina iniziale"
       onClick={handleClick}
       className={cn(
         'inline-flex items-center gap-2 rounded-xl px-2 py-2',
@@ -137,13 +137,10 @@ export default function Navbar() {
   const activeKey = React.useMemo(() => getActiveKey(pathname), [pathname]);
 
   React.useEffect(() => {
-    const scrollRoot = document.getElementById('scroll-root');
-    const target = scrollRoot ?? document.documentElement;
-    const getY = () => (scrollRoot ? scrollRoot.scrollTop : window.scrollY);
-    const onScroll = () => setScrolled(getY() > 20);
+    const onScroll = () => setScrolled(window.scrollY > 20);
     onScroll();
-    target.addEventListener('scroll', onScroll, { passive: true });
-    return () => target.removeEventListener('scroll', onScroll);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   React.useEffect(() => {
@@ -271,7 +268,7 @@ export default function Navbar() {
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40'
           )}
         >
-          <span className="sr-only">{isOpen ? 'Close' : 'Menu'}</span>
+          <span className="sr-only">{isOpen ? 'Chiudi' : 'Menu'}</span>
           <span aria-hidden="true" className="text-xl leading-none">
             {isOpen ? '×' : '≡'}
           </span>

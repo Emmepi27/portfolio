@@ -134,7 +134,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
             key="mobile-panel"
             role="dialog"
             aria-modal="true"
-            aria-label="Menu"
+            aria-label="Menu di navigazione"
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
             dragElastic={{ top: 0.25, bottom: 0 }}
@@ -170,11 +170,11 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
                   'inline-flex items-center gap-2 rounded-xl px-2 py-2',
                   'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-black/50'
                 )}
-                aria-label="Home"
+                aria-label="Pagina iniziale"
                 onClick={(e) => {
                   if (activeKey === 'home') {
                     e.preventDefault();
-                    document.getElementById('scroll-root')?.scrollTo(0, 0);
+                    window.scrollTo(0, 0);
                   }
                   onClose();
                 }}

@@ -386,7 +386,7 @@ function BackgroundSystem() {
       }, SCROLL_END_MS);
     };
 
-    (scrollTarget as any).addEventListener("scroll", onScroll, { passive: true });
+    (scrollTarget as EventTarget).addEventListener("scroll", onScroll, { passive: true });
 
     const onResize = () => {
       if (resizeTimeout) clearTimeout(resizeTimeout);
@@ -606,7 +606,7 @@ function BackgroundSystem() {
       syncRunningRef.current = null;
       document.removeEventListener("visibilitychange", onVis);
 
-      (scrollTarget as any).removeEventListener("scroll", onScroll);
+      (scrollTarget as EventTarget).removeEventListener("scroll", onScroll);
       if (scrollEndTimeout) clearTimeout(scrollEndTimeout);
 
       stopLoop();
