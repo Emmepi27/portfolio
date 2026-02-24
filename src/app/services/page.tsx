@@ -4,9 +4,9 @@ import { site } from "@/config/site";
 import ProofGrid from "@/components/proof/proof-grid";
 
 export const metadata = {
-  title: "Servizi: Rebuild, SEO Tecnico & Performance",
+  title: "Servizi: siti veloci, indicizzabili, manutenibili",
   description:
-    "Sviluppo custom Next.js, audit SEO tecnico, miglioramento Core Web Vitals e refactoring legacy. Soluzioni engineering-first per scalabilità e mantenibilità.",
+    "Build e refactor mirati per siti moderni: caricamento rapido, metadata corretti, niente sorprese in produzione. Focus su qualità del codice e risultati misurabili.",
   alternates: { canonical: new URL("/services", site.url).href },
 };
 

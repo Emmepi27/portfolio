@@ -6,9 +6,9 @@ import WorkShowcaseStory from "@/components/work/WorkShowcaseStory";
 import KeyboardHint from '@/components/ui/KeyboardHint';
 
 export const metadata = {
-  title: "Case Studies: Architettura, Vincoli e Impatto",
+  title: "Case Studies: scelte, vincoli, risultati",
   description:
-    "Selezione di progetti con focus tecnico: architettura, scelte implementative (Next.js, TypeScript), gestione vincoli e risultati misurati.",
+    "Una selezione di progetti con dettagli tecnici essenziali: vincoli, decisioni e risultati. Racconto cosa ho fatto, perché, e quali metriche sono migliorate.",
   alternates: { canonical: new URL("/work", site.url).href },
 };
 
@@ -48,8 +48,8 @@ export default function WorkPage() {
         
         {/* Descrizione Bilanciata */}
         <p className="mt-6 max-w-2xl text-base md:text-lg text-zinc-400 text-balance leading-relaxed">
-          Un&apos;esplorazione visiva e tecnica dei risultati ottenuti. Dalle scelte architetturali in <strong className="text-zinc-300 font-medium">Next.js</strong> e <strong className="text-zinc-300 font-medium">TypeScript</strong>, alla gestione dei vincoli di business reali.
-        </p>
+  Una selezione di progetti raccontati per scelte e risultati. Frontend, dati e integrazioni quando servono, con focus su performance, SEO e qualità del codice.
+</p>
 
         {/* Micro-Scroll Indicator (Opzionale, invita a scendere verso il 3D) */}
         <div className="mt-16 flex flex-col items-center opacity-70">
