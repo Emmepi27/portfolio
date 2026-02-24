@@ -14,31 +14,31 @@ const services = [
   {
     icon: Wrench,
     title: "Fix & Improve",
-    desc: "Bugfix, responsive, performance e manutenzione su siti esistenti.",
+    desc: "Bugfix e miglioramenti rapidi su siti esistenti: mobile, regressioni, performance.",
     bullets: [
-      "Debug layout mobile / regressioni cross-device",
-      "Core Web Vitals: LCP/CLS/INP (azioni concrete)",
+      "Debug responsive e cross-device (layout, scroll, sticky, CLS)",
+      "Core Web Vitals: LCP/CLS/INP con interventi tracciabili",
       "Pulizia CSS/JS e riduzione carico client",
     ],
   },
   {
     icon: Search,
     title: "SEO & E-E-A-T",
-    desc: "SEO tecnico + contenuti che reggono (soprattutto local).",
+    desc: "SEO tecnico; pagine che rispondono all’intento e portano contatti.",
     bullets: [
-      "Audit tecnico: indexability, metadata, canonical",
-      "Schema.org / JSON-LD (LocalBusiness, FAQ, Breadcrumb)",
+      "Audit tecnico: indexability, canonical, metadata, sitemap/robots, hreflang",
+      "Schema.org / JSON-LD validi (LocalBusiness, FAQ, Breadcrumb)",
       "Strategia contenuti: intent → pagina → CTA",
     ],
   },
   {
     icon: Rocket,
     title: "Build & Rebuild",
-    desc: "Siti e web-app con Next.js/React: puliti, veloci, deploy-ready.",
+    desc: "Siti e web-app puliti, veloci, pronti al deploy e facili da mantenere.",
     bullets: [
       "Next.js App Router + TypeScript + Tailwind",
       "Migrazioni da WordPress con attenzione SEO",
-      "i18n quando serve (IT/EN/DE) senza caos",
+      "i18n quando serve (IT/EN/DE) con routing ordinato",
     ],
   },
 ];
@@ -49,7 +49,7 @@ export default function ServicesPage() {
       <header className="space-y-3">
         <h1 className="font-[var(--font-serif)] text-4xl">Servizi</h1>
         <p className="max-w-2xl text-zinc-300">
-          Lavoro su due fronti: migliorare siti esistenti (ROI rapido) e costruire
+          Lavoro su due fronti: migliorare siti esistenti e costruire
           da zero con performance/SEO by design.
         </p>
         <p className="text-sm">
@@ -57,7 +57,7 @@ export default function ServicesPage() {
             href="/services/agenzie"
             className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
-            Per agenzie: white-label / sprint / retainer →
+            Per agenzie →
           </Link>
         </p>
       </header>
@@ -90,7 +90,7 @@ export default function ServicesPage() {
           <div>
             <h2 className="font-medium">Vuoi parlare di un progetto?</h2>
             <p className="mt-1 text-sm text-zinc-300">
-              Mandami contesto + obiettivo + vincoli. Rispondo con piano e priorità.
+              Mandami contesto, obiettivi e vincoli. Ti rispondo con priorità, rischi e prossimi step.
             </p>
           </div>
           <div className="flex flex-wrap gap-3">

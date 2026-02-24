@@ -76,12 +76,10 @@ export default function WorkPage() {
         <div className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-sm p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <h2 id="work-cta-heading" className="text-xl font-medium text-white md:text-2xl">
-                Vuoi parlare di un progetto?
-              </h2>
-              <p className="mt-2 text-sm text-zinc-300 md:text-base">
-                Mandami contesto + obiettivo + vincoli. Rispondo con piano e priorità.
-              </p>
+            <h2 className="font-medium">Vuoi parlare di un progetto?</h2>
+            <p className="mt-1 text-sm text-zinc-300">
+              Mandami contesto, obiettivi e vincoli. Ti rispondo con priorità, rischi e prossimi step.
+            </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3">
               <Link
