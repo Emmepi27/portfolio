@@ -23,8 +23,8 @@ export default function HomePage() {
             WEB · GIS · POSTGIS · SEO
           </p>
 
-          <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
-          Il tuo brand, ma più performance
+          <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-5xl">
+          Web che performa
 </h1>
 
 <p className="mt-6 max-w-2xl text-zinc-300">
