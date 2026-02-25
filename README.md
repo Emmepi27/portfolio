@@ -1,50 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Portfolio Website (Next.js App Router) Manuel Pammer
 
-## Production Environment
+Live: https://manuelpammer.vercel.app/
+Stack: Next.js (App Router) · TypeScript · Tailwind · SEO (Metadata API) · Performance-first
 
-Set `NEXT_PUBLIC_SITE_URL` in your production environment (e.g., Vercel project settings):
+## What this is
+A production-grade portfolio website built to be fast, accessible, and SEO-clean.  
+This repository is public for **viewing purposes only**.
 
-```bash
-NEXT_PUBLIC_SITE_URL=https://yourdomain.com
-```
+## Highlights
+- **App Router + Metadata API**: canonical + sitemap/robots generated with absolute URLs
+- **Performance budgeted background system**: policy-driven animation with zones + FPS/DPR caps
+- **Mobile-first + a11y**: semantic structure, focus-visible, touch targets, no layout shift
 
-This ensures correct absolute URLs in metadata, canonical tags, sitemap, and robots.txt. The build will fail in production if this variable is not set.
+## Production environment
+Set `NEXT_PUBLIC_SITE_URL` in the production environment (e.g. Vercel settings):
 
-### Background System: policy + zones + perf budget
+bash
+NEXT_PUBLIC_SITE_URL=https://TUO-DOMINIO.com]
 
-The animated canvas background is **policy-driven** (not effect-driven): device/profile (reduced-motion, save-data, memory, viewport) sets FPS/DPR; visible **zones** (hero, selection, main, footer) set density and zone-specific FPS caps. Scroll and visibility only update zone/visibility; base policy is recomputed only on resize/matchMedia. Toggle `?bg=off` to disable the background, `?bg=debug` to show zone/fps/dpr/density/profile in the corner.
+This is required to generate correct absolute URLs for metadata, canonical, sitemap, and robots.
+The production build is expected to fail if it’s missing.
 
-## Getting Started
+Background system (policy + zones + perf budget)
 
-First, run the development server:
+The animated canvas background is policy-driven (not effect-driven):
 
-```bash
+Device/profile signals (reduced motion, save-data, memory, viewport) set FPS/DPR and density
+
+Visible zones (hero, selection, main, footer) apply zone-specific caps
+
+Scroll/visibility only update active zone; base policy recomputes on resize/matchMedia
+
+Debug toggles:
+
+Disable background: ?bg=off
+
+Debug overlay: ?bg=debug
+
+Local development
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open http://localhost:3000
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Commands
+npm run build
+npm run start
+npm run lint
+License / usage
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+© 2026 Manuel Pammer. All rights reserved.
 
-## Learn More
+This repository is published to showcase the work.
+No permission is granted to use, copy, modify, merge, publish, distribute, sublicense, and/or sell any part of the code without prior written consent.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+If you want to discuss collaboration or licensing, contact: manuelpamm@gmail.com
