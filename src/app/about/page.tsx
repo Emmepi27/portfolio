@@ -4,7 +4,7 @@ import { site } from "@/config/site";
 export const metadata = {
   title: "About Manuel Michael Pammer — Metodologia & Stack (React/Next.js)",
   description:
-    "Full-stack frontend-heavy: vincoli espliciti, validazione misurabile (CWV, SEO). Proof: #1 Google locale, e-commerce Shopify IT/EN, delivery rapida.",
+    "Sono Manuel: giovane e motivato a realizzare siti che funzionano davvero. Wordpress/Nuxt/Vue/Next/React, SEO tecnico e performance. Lavoro con vincoli chiari e risultati verificabili.",
   alternates: { canonical: new URL("/about", site.url).href },
 };
 
@@ -14,13 +14,13 @@ export default function AboutPage() {
       <header className="space-y-3">
         <h1 className="font-[var(--font-serif)] text-4xl">Chi sono</h1>
         <p className="max-w-2xl text-zinc-300">
-          Costruisco prodotti web con approccio engineering-first: obiettivi misurabili, vincoli chiari e delivery pulita.
+          Costruisco prodotti web con particolare attenzione ai dettagli: obiettivi misurabili, vincoli chiari e delivery pulita.
         </p>
         <p className="max-w-2xl text-zinc-300">
-          Sono full-stack frontend-heavy (Next.js/TypeScript), con focus su Core Web Vitals, SEO tecnico e WebGIS quando serve.
+          Full-stack frontend-heavy, con focus su Core Web Vitals, SEO tecnico e WebGIS quando serve.
         </p>
         <p className="max-w-2xl text-zinc-300">
-          Mi interessa la sostanza: meno “effetti”, più performance, accessibilità e manutenzione semplice.
+          Mi interessa la sostanza: performance, accessibilità e manutenzione semplice.
         </p>
       </header>
 
@@ -28,20 +28,20 @@ export default function AboutPage() {
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:col-span-2">
           <h2 className="font-medium">Come lavoro</h2>
           <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-300">
-            <li>Definisco obiettivo + metrica (es. lead, indexability, CWV) e cosa è “done”.</li>
-            <li>Metto in chiaro i vincoli (SEO/performance/i18n/budget/tempo) e scelgo trade-off espliciti.</li>
-            <li>Intervento “surgical”: refactor mirati, bugfix, cleanup UI/responsive senza rompere il resto.</li>
-            <li>Validazione: checklist CWV/SEO, test responsive, regressioni e handoff documentato.</li>
+            <li>Parto dall’obiettivo: lead, vendite, prenotazioni.</li>
+            <li>Metto in chiaro vincoli e rischi: tempo, budget, SEO, performance, legacy.</li>
+            <li>Interventi piccoli e mirati: fix, refactor, cleanup responsive senza rompere il resto.</li>
+            <li>Chiudo con verifica: CWV/SEO, test mobile, e handoff pulito.</li>
           </ul>
         </div>
 
         <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <h2 className="font-medium">Focus</h2>
+          <h2 className="font-medium">Cosa faccio</h2>
           <div className="mt-3 space-y-2 text-sm text-zinc-300">
-            <p><span className="text-zinc-100">Frontend:</span> Next.js / React / TypeScript (UI stabile, componenti riusabili)</p>
-            <p><span className="text-zinc-100">Performance:</span> Core Web Vitals, bundle/asset hygiene, regressioni sotto controllo</p>
-            <p><span className="text-zinc-100">SEO tecnico:</span> metadata/canonical/sitemap + structured data quando ha senso</p>
-            <p><span className="text-zinc-100">WebGIS:</span> PostGIS / GeoDjango / MapLibre (dati geospaziali e visualizzazione)</p>
+            <p><span className="text-zinc-100">Frontend:</span> Nuxt.js / Vue.js /Next.js / React / TypeScript</p>
+            <p><span className="text-zinc-100">Performance:</span> Core Web Vitals, bundle/asset hygiene</p>
+            <p><span className="text-zinc-100">SEO tecnico:</span> metadata/canonical/sitemap + structured data </p>
+            <p><span className="text-zinc-100">WebGIS:</span> PostGIS / GeoDjango / MapLibre </p>
           </div>
         </div>
       </section>
@@ -50,8 +50,8 @@ export default function AboutPage() {
         <h2 className="font-medium">Perché fidarsi</h2>
         <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-300">
           <li>Background internazionale: nato in Austria, cresciuto a Roma, Erasmus a Mainz (DE). IT/DE madrelingua, EN C1.</li>
-          <li>Affidabilità operativa: ho lavorato mentre studiavo e vivo in autonomia da anni → consegne, priorità, responsabilità.</li>
-          <li>Metodo: scacchi ~2000 Elo online → analisi, pazienza, iterazione (debug incluso).</li>
+          <li>Affidabilità operativa: ho lavorato per mantenermi gli studi e realizzare i miei sogni → consegne, priorità, responsabilità.</li>
+          <li>Gli scacchi e il volo libero (parapendio) mi hanno dato un metodo: osservare, scegliere bene, e migliorare per iterazioni.</li>
         </ul>
       </section>
 
