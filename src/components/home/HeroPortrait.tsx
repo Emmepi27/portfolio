@@ -15,6 +15,7 @@ export default function HeroPortrait() {
             height={96}
             sizes="96px"
             className="h-full w-full object-cover"
+            priority
           />
         </div>
         <div className="min-w-0 flex-1">
@@ -23,16 +24,17 @@ export default function HeroPortrait() {
 </div>
       </div>
 
-      {/* Desktop: portrait card */}
-      <div className="relative hidden w-full min-w-0 max-w-[420px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] lg:block">
-        <div className="relative aspect-[4/5] w-full">
+      {/* Desktop: portrait card ridotto. LCP: priority per caricamento above-the-fold. */}
+      <div className="relative hidden w-full min-w-0 max-w-[300px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] lg:block">
+        <div className="relative aspect-[2/3] w-full">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_70%_20%,rgba(252,211,77,0.08),transparent)]" aria-hidden />
           <Image
             src={PORTRAIT_SRC}
             alt="Manuel Michael Pammer, Web Engineer"
             fill
-            sizes="(min-width: 1024px) 420px, 0px"
+            sizes="(min-width: 1024px) 600px, 96px"
             className="object-cover"
+            priority
           />
         </div>
       </div>

@@ -15,7 +15,7 @@ export default function HomePage() {
     <div className="flex min-h-0 flex-col lg:h-full">
       <section
         data-bg-zone="hero"
-        className="grid min-h-0 flex-1 grid-cols-1 gap-8 py-10 pt-6 sm:py-14 md:gap-10 lg:grid-cols-12 lg:items-center lg:py-6"
+        className="grid min-h-0 flex-1 grid-cols-1 gap-8 py-10 pt-6 sm:py-14 md:gap-10 lg:grid-cols-12 lg:gap-4 lg:items-center lg:py-6"
         aria-labelledby="hero-heading"
       >
         <div className="min-w-0 lg:col-span-7">
@@ -56,7 +56,7 @@ export default function HomePage() {
           </div>
         </div>
 
-        <div className="flex min-w-0 justify-center lg:col-span-5 lg:justify-end">
+        <div className="flex min-w-0 justify-center lg:col-span-5 lg:justify-start">
           <HeroPortrait />
         </div>
       </section>
