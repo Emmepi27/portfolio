@@ -27,9 +27,9 @@ export default function HomePage() {
   Tecnologia pulita, esperienza premium.
 </h1>
 
-          <p className="mt-6 max-w-2xl text-zinc-300">
-            Sistemo ciò che blocca: performance, SEO tecnico e debito tecnico—così il sito regge produzione e manutenzione.
-            Specialità WebGIS/PostGIS quando servono mappe, tracce e dati geospaziali — senza sacrificare UX.
+<p className="mt-6 max-w-2xl text-zinc-300">
+  Creo e sistemo siti web che reggono: performance, SEO tecnico e refactor mirati.
+  Quando servono mappe e dati, porto anche WebGIS/PostGIS senza sacrificare UX.
             Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">come lavoro</Link>.
           </p>
 
