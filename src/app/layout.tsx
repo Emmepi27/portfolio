@@ -79,8 +79,8 @@ export default function RootLayout({
           <MainWrapper>
             {children}
           </MainWrapper>
-          <footer data-bg-zone="footer" className="h-[20vh] min-h-[20vh] shrink-0 border-t border-white/10">
-            <div className="mx-auto flex h-full max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-5 py-10 text-center text-sm text-zinc-400">
+          <footer data-bg-zone="footer" className="shrink-0 border-t border-white/10 py-8 sm:py-10 lg:h-[20vh] lg:min-h-[20vh] lg:py-0">
+            <div className="mx-auto flex h-full max-w-6xl flex-col items-center justify-center gap-4 px-5 py-6 text-center text-sm text-zinc-400 sm:flex-row sm:gap-6 sm:py-10 lg:flex-wrap lg:gap-x-6 lg:gap-y-2 lg:py-0">
               <span>© {new Date().getFullYear()} {site.name}</span>
               <Link
                 href="/services/agenzie"

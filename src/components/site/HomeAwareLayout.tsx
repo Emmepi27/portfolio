@@ -13,17 +13,18 @@ const ptPortfolio =
 const ptOther =
   "pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2.5rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+3rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+4rem)]";
 
+/** Classe stabile per il root: evita swap di stringhe che può triggerare warning in React DevTools. */
+const SCROLL_ROOT_BASE =
+  "flex min-h-screen flex-col overflow-y-auto";
+
 export function ScrollRootWrapper({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isHome = pathname === "/";
   return (
     <div
       id="scroll-root"
-      className={
-        isHome
-          ? "flex h-screen flex-col overflow-y-auto"
-          : "flex min-h-screen flex-col"
-      }
+      className={isHome ? `${SCROLL_ROOT_BASE} lg:h-screen` : SCROLL_ROOT_BASE}
+      data-home={isHome ? "true" : "false"}
     >
       {children}
     </div>
@@ -35,11 +36,13 @@ export function MainWrapper({ children }: { children: React.ReactNode }) {
   const isHome = pathname === "/";
   const isWork = pathname === "/work";
   const ptClass = isWork ? ptPortfolio : ptOther;
+  const minHClass = isHome ? " lg:min-h-0" : "";
   return (
     <main
       id="main"
       data-bg-zone="main"
-      className={`${mainBaseClass} ${ptClass}${isHome ? " min-h-0" : ""}`}
+      data-home={isHome ? "true" : "false"}
+      className={mainBaseClass + " " + ptClass + minHClass}
     >
       {children}
     </main>

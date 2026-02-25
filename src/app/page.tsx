@@ -12,10 +12,10 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-col lg:h-full">
       <section
         data-bg-zone="hero"
-        className="grid min-h-0 flex-1 grid-cols-1 gap-8 pt-6 lg:grid-cols-12 lg:items-center"
+        className="grid min-h-0 flex-1 grid-cols-1 gap-8 py-10 pt-6 sm:py-14 md:gap-10 lg:grid-cols-12 lg:items-center lg:py-6"
         aria-labelledby="hero-heading"
       >
         <div className="min-w-0 lg:col-span-7">
@@ -33,7 +33,7 @@ export default function HomePage() {
             <p>Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">il metodo che adotto</Link>.</p>
             
 
-          <div className="mt-8 flex flex-wrap gap-3">
+          <div className="mt-8 flex flex-wrap gap-3 sm:mt-10">
             <Link
               href="/work"
               className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
@@ -48,7 +48,7 @@ export default function HomePage() {
             </Link>
           </div>
 
-          <div className="mt-10 flex flex-wrap gap-2" role="list" aria-label="Proof">
+          <div className="mt-10 flex flex-wrap gap-2 sm:mt-12" role="list" aria-label="Proof">
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">CWV: LCP / CLS / INP</span>
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">SEO tecnico</span>
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">Refactor mirati</span>
