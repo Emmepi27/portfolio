@@ -28,7 +28,7 @@ export default function HomePage() {
           </h1>
 
           <p className="mt-6 max-w-2xl text-zinc-300">
-            Refactor, performance (Core Web Vitals) e SEO tecnico per progetti che devono reggere produzione e manutenzione.
+            Sistemo ciò che blocca: performance, SEO tecnico e debito tecnico—così il sito regge produzione e manutenzione.
             Specialità WebGIS/PostGIS quando servono mappe, tracce e dati geospaziali — senza sacrificare UX.
             Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">come lavoro</Link>.
           </p>
@@ -49,9 +49,9 @@ export default function HomePage() {
           </div>
 
           <div className="mt-10 flex flex-wrap gap-2" role="list" aria-label="Proof">
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">Performance (Core Web Vitals)</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">CWV: LCP / CLS / INP</span>
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">SEO tecnico</span>
-            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">MVP in 2–6 settimane</span>
+            <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">Refactor mirati</span>
             <span className="rounded-full border border-white/15 bg-white/[0.04] px-3 py-1.5 text-xs text-zinc-300" role="listitem">WebGIS: PostGIS + GeoDjango</span>
           </div>
         </div>
