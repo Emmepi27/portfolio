@@ -122,7 +122,7 @@ export default async function WorkDetailPage({
                 target="_blank"
                 rel="noreferrer"
               >
-                Demo
+                Visita il sito
               </a>
             )}
             {p.links.repo && (
@@ -132,7 +132,7 @@ export default async function WorkDetailPage({
                 target="_blank"
                 rel="noreferrer"
               >
-                Repo
+                {p.slug === "rsfly" ? "Contattami per accedere alla repo" : "Repo"}
               </a>
             )}
           </div>

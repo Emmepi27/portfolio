@@ -84,6 +84,7 @@ impact: [
   "Pattern riusabili: i18n + SEO “composable” replicabili su nuove pagine/landing senza sorprese",
   "Codebase più mantenibile: copy in messages, componenti piccoli tipizzati e convenzioni stabili",
 ],
+      links: { demo: "https://olivier-estetica.vercel.app/it" },
       screenshots: [
         { src: "/images/work/olivier/01.webp", alt: "Olivier homepage" },
         { src: "/images/work/olivier/02.webp", alt: "Olivier page" },

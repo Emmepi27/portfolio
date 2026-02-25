@@ -85,7 +85,7 @@ export default function RootLayout({
                 href="/services/agenzie"
                 className="text-zinc-400 hover:text-zinc-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
-                Per agenzie
+                Scopri i servizi per le agenzie
               </Link>
             </div>
           </footer>

@@ -67,9 +67,8 @@ export default function ContactPage() {
       <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
         <h2 className="font-medium">Prima di scrivere</h2>
         <p className="mt-2 text-sm text-zinc-300">
-          Consulta i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi (rebuild, SEO tecnico, performance)</Link>, i{" "}
-          <Link href="/work" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">progetti con Next.js e SEO</Link> e un esempio concreto:{" "}
-          <Link href="/work/olivier-estetica-sartoriale" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">rebuild Next.js con i18n e SEO strutturato</Link>.
+          Consulta i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e i{" "}
+          <Link href="/work" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">miei progetti</Link>.
         </p>
       </section>
     </div>
