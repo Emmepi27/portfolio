@@ -7,17 +7,29 @@ const cardClass =
 type ProofGridProps = {
   /** Compatta: meno padding, testo più piccolo (es. Services). */
   compact?: boolean;
+  /** Se impostato, mostra link "Vedi tutto" accanto al titolo. */
+  vediTuttoHref?: string;
 };
 
-export default function ProofGrid({ compact }: ProofGridProps) {
+export default function ProofGrid({ compact, vediTuttoHref }: ProofGridProps) {
   return (
     <section
       className="overflow-x-hidden"
       aria-labelledby="risultati-heading"
     >
-      <h2 id="risultati-heading" className="font-[var(--font-serif)] text-2xl">
-        Risultati
-      </h2>
+      <div className="flex items-end justify-between gap-6">
+        <h2 id="risultati-heading" className="font-[var(--font-serif)] text-2xl">
+          Risultati
+        </h2>
+        {vediTuttoHref ? (
+          <Link
+            href={vediTuttoHref}
+            className="text-sm text-zinc-300 hover:text-white focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            Vedi tutto →
+          </Link>
+        ) : null}
+      </div>
       <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {proofCards.map((card) => {
           const className = compact

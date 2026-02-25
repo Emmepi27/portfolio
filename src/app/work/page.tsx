@@ -3,6 +3,7 @@ import { projects } from "@/content/projects";
 import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
 import WorkShowcaseStory from "@/components/work/WorkShowcaseStory";
+import ProofGrid from "@/components/proof/proof-grid";
 import KeyboardHint from '@/components/ui/KeyboardHint';
 
 export const metadata = {
@@ -70,6 +71,11 @@ export default function WorkPage() {
           <WorkShowcaseStory projects={projects} />
         </div>
       </div>
+
+      {/* Risultati */}
+      <section className="mt-16 w-full max-w-4xl mx-auto px-5">
+        <ProofGrid />
+      </section>
 
       {/* CTA */}
       <section className="mt-16 w-full max-w-4xl mx-auto px-5 pb-4" aria-labelledby="work-cta-heading">

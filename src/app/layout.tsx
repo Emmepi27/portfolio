@@ -7,6 +7,7 @@ import { site } from "@/config/site";
 import { satoshi, cabinet } from "@/config/fonts";
 import JsonLd from "@/components/JsonLd";
 import Navbar from "@/components/site/Navbar";
+import { ScrollRootWrapper, MainWrapper } from "@/components/site/HomeAwareLayout";
 import BackgroundSystemClient from "@/components/background/BackgroundSystemClient";
 
 export const viewport = { width: "device-width", initialScale: 1 };
@@ -65,7 +66,7 @@ export default function RootLayout({
             <BackgroundSystemClient />
           </Suspense>
         </div>
-        <div id="scroll-root">
+        <ScrollRootWrapper>
           <JsonLd data={webSiteJsonLd} />
           <JsonLd data={personJsonLd} />
           <a
@@ -75,11 +76,11 @@ export default function RootLayout({
             Salta al contenuto
           </a>
           <Navbar />
-          <main id="main" data-bg-zone="main" className="mx-auto w-full max-w-6xl px-5 pb-24 pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1rem)] md:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+1.5rem)] lg:pt-[calc(5.5rem+env(safe-area-inset-top,0px)+2rem)]">
+          <MainWrapper>
             {children}
-          </main>
-          <footer data-bg-zone="footer" className="border-t border-white/10">
-            <div className="mx-auto max-w-6xl px-5 py-10 text-sm text-zinc-400 flex flex-wrap items-center justify-between gap-x-6 gap-y-2">
+          </MainWrapper>
+          <footer data-bg-zone="footer" className="h-[20vh] min-h-[20vh] shrink-0 border-t border-white/10">
+            <div className="mx-auto flex h-full max-w-6xl flex-wrap items-center justify-center gap-x-6 gap-y-2 px-5 py-10 text-center text-sm text-zinc-400">
               <span>© {new Date().getFullYear()} {site.name}</span>
               <Link
                 href="/services/agenzie"
@@ -90,7 +91,7 @@ export default function RootLayout({
             </div>
           </footer>
           <Analytics />
-        </div>
+        </ScrollRootWrapper>
       </body>
     </html>
   );
