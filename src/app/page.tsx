@@ -24,13 +24,13 @@ export default function HomePage() {
           </p>
 
           <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
-  Il tuo brand, in forma.
+  Web che performa
 </h1>
 
 <p className="mt-6 max-w-2xl text-zinc-300">
   Creo e sistemo siti web che reggono: performance, SEO tecnico e refactor mirati.
   Quando servono mappe e dati, porto anche WebGIS/PostGIS senza sacrificare UX.
-            Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">come lavoro</Link>.
+            Scopri i <Link href="/services" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">servizi</Link> e <Link href="/about" className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black">come lavoro</Link>
           </p>
 
           <div className="mt-8 flex flex-wrap gap-3">
