@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { Manrope, Bodoni_Moda } from "next/font/google";
 import Link from "next/link";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import { site } from "@/config/site";
+import { satoshi, cabinet } from "@/config/fonts";
 import JsonLd from "@/components/JsonLd";
 import Navbar from "@/components/site/Navbar";
 import BackgroundSystemClient from "@/components/background/BackgroundSystemClient";
-
-const sans = Manrope({ subsets: ["latin"], variable: "--font-sans" });
-const serif = Bodoni_Moda({ subsets: ["latin"], variable: "--font-serif" });
 
 export const viewport = { width: "device-width", initialScale: 1 };
 
@@ -58,8 +55,8 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="it" className={`${sans.variable} ${serif.variable} overflow-x-hidden`}>
-      <body className="min-h-dvh bg-black text-zinc-100 antialiased overflow-x-hidden">
+    <html lang="it" className={`${satoshi.variable} ${cabinet.variable} overflow-x-hidden`}>
+      <body className="min-h-dvh bg-black text-zinc-100 font-sans antialiased overflow-x-hidden">
         <div
           className="fixed inset-0 -z-10 overflow-hidden background-fallback"
           aria-hidden="true"
