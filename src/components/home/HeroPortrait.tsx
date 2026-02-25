@@ -18,9 +18,9 @@ export default function HeroPortrait() {
           />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-medium text-zinc-300">Web Engineer · GIS/PostGIS</p>
-          <p className="text-xs text-zinc-400">MVP 2–6 settimane · CWV · SEO</p>
-        </div>
+  <p className="text-xs font-medium text-zinc-300">Web Engineer · GIS/PostGIS</p>
+  <p className="text-xs text-zinc-400">Siti veloci · SEO tecnico · Zero sorprese</p>
+</div>
       </div>
 
       {/* Desktop: portrait card */}
