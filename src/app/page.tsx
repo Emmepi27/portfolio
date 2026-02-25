@@ -24,8 +24,8 @@ export default function HomePage() {
           </p>
 
           <h1 id="hero-heading" className="mt-5 font-[var(--font-serif)] text-5xl leading-[1.05] md:text-6xl">
-            Siti e web-app veloci, indicizzabili e facili da mantenere.
-          </h1>
+  Tecnologia pulita, esperienza premium.
+</h1>
 
           <p className="mt-6 max-w-2xl text-zinc-300">
             Sistemo ciò che blocca: performance, SEO tecnico e debito tecnico—così il sito regge produzione e manutenzione.
