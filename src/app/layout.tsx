@@ -80,7 +80,7 @@ export default function RootLayout({
             {children}
           </MainWrapper>
           <footer data-bg-zone="footer" className="shrink-0 border-t border-white/10 py-8 sm:py-10 lg:h-[20vh] lg:min-h-[20vh] lg:py-0">
-            <div className="mx-auto flex h-full max-w-6xl flex-col items-center justify-center gap-4 px-5 py-6 text-center text-sm text-zinc-400 sm:flex-row sm:gap-6 sm:py-10 lg:flex-wrap lg:gap-x-6 lg:gap-y-2 lg:py-0">
+            <div className="mx-auto flex h-full max-w-6xl flex-col items-center justify-center gap-4 px-5 py-6 text-center text-sm text-zinc-400 sm:flex-row sm:gap-6 sm:py-10 lg:flex-wrap lg:gap-x-6 lg:gap-y-2">
               <div className="flex max-w-full flex-col items-center gap-1 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-x-2 sm:gap-y-1">
                 <span>© {new Date().getFullYear()} {site.name}</span>
                 <span
@@ -95,10 +95,10 @@ export default function RootLayout({
                 </span>
               </div>
               <Link
-                href="/services/agenzie"
-                className="text-zinc-400 hover:text-zinc-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                href="/contact"
+                className="transition-colors hover:text-zinc-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20"
               >
-                Scopri i servizi per le agenzie
+                Parliamo
               </Link>
             </div>
           </footer>
