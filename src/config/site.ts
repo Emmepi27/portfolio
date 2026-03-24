@@ -23,6 +23,7 @@ const links = {
 
 export const site = {
   name: "Manuel Michael Pammer — Web Engineer",
+  vatNumber: "18481611004",
   url: normalizedUrl,
   description:
     "Web engineer (Next.js/React) con focus su performance, SEO e app data-heavy (GIS/PostGIS).",
