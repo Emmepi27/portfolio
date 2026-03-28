@@ -3,7 +3,12 @@
 import * as React from "react";
 import Image from "next/image";
 import type { Project } from "@/content/projects";
-import { loadGsapScrollTrigger, type ScrollTriggerInstance } from "@/lib/gsap";
+import { useMotionFoundation } from "@/hooks/useMotionFoundation";
+import {
+  loadGsapScrollTrigger,
+  type ScrollTriggerAPI,
+  type ScrollTriggerInstance,
+} from "@/lib/gsap";
 import { initScene, loadTexture } from "@/lib/three";
 import * as THREE from "three";
 
@@ -42,7 +47,14 @@ function normalizeSrc(src: string): string {
   return src.startsWith("/") ? src : `/${src}`;
 }
 
-type WorkShowcase3DProps = { projects: Project[] };
+type WorkShowcase3DProps = {
+  projects: Project[];
+  /**
+   * Desktop: niente `#chapters-wrapper` / ScrollTrigger — idle leggero tra gli screenshot.
+   * Usato nel blocco featured su `/work` (3D come enhancer, non come unica UX).
+   */
+  embeddedFeatured?: boolean;
+};
 
 // ─── Hooks ───────────────────────────────────────────────────────────────────
 
@@ -92,7 +104,10 @@ function smoothFocus(dist: number) {
 
 // ─── Fallback carousel (mobile / reduced-motion / SSR) ───────────────────────
 
-function FallbackShowcase({ projects, height }: WorkShowcase3DProps & { height: string }) {
+function FallbackShowcase({
+  projects,
+  height,
+}: Pick<WorkShowcase3DProps, "projects"> & { height: string }) {
   const withShots = projects.filter((p) => p.screenshots?.length);
   if (withShots.length === 0) return null;
 
@@ -128,9 +143,13 @@ function FallbackShowcase({ projects, height }: WorkShowcase3DProps & { height: 
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
+export default function WorkShowcase3D({
+  projects,
+  embeddedFeatured = false,
+}: WorkShowcase3DProps) {
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const containerRef = React.useRef<HTMLDivElement>(null);
+  useMotionFoundation({ scope: containerRef });
 
   const reducedMotion = useReducedMotion();
   const isSmall = useIsSmallScreen();
@@ -162,6 +181,8 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
     const canvas = canvasRef.current;
     const container = containerRef.current;
     if (!canvas || !container) return;
+
+    const isEmbedded = embeddedFeatured;
 
     let disposed = false;
     let ctx: ReturnType<typeof initScene> | null = null;
@@ -213,23 +234,15 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
     void (async () => {
       if (!canvas || !container || disposed) return;
 
-      const storyEl = document.getElementById("work-story");
+      const storyEl =
+        document.getElementById("work-featured-story") ??
+        document.getElementById("work-story");
       storyElRef = storyEl;
       const chaptersWrapper = document.getElementById("chapters-wrapper");
-      if (!chaptersWrapper) return;
+      if (!isEmbedded && !chaptersWrapper) return;
 
-      const { ScrollTrigger } = await loadGsapScrollTrigger();
-      if (disposed) return;
-
-      // ── SCROLLER DETECTION ──────────────────────────────────────────────
-      // In questo progetto lo scroll è su #scroll-root (globals.css), non su window.
-      // Se non lo rileviamo, ScrollTrigger ascolta window e il progress non si sincronizza.
-      const scrollerEl =
-        (document.getElementById('scroll-root') as HTMLElement | null) ??
-        (document.querySelector('[data-scroll-container]') as HTMLElement | null) ??
-        (document.querySelector('[data-lenis-scroll-container]') as HTMLElement | null) ??
-        null;
-
+      let ScrollTrigger: ScrollTriggerAPI | null = null;
+      let scrollerEl: HTMLElement | null = null;
       const getScrollMetrics = () => {
         if (!scrollerEl) {
           const scrollTop = window.scrollY;
@@ -243,10 +256,18 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
         return { scrollTop, scrollHeight, clientHeight };
       };
 
-      // ⚠️ FIX CRITICO: aspetta 2 rAF dopo il load di GSAP così il layout è
-      // completamente stabile (flexbox/grid risolto, sticky posizionato, font caricato).
-      // Senza questo ScrollTrigger misura chaptersWrapper prima che abbia la sua
-      // altezza finale → progress rimane sempre 0 o 1 → 3D fermo.
+      if (!isEmbedded) {
+        const loaded = await loadGsapScrollTrigger();
+        if (disposed) return;
+        ScrollTrigger = loaded.ScrollTrigger;
+        scrollerEl =
+          (document.getElementById("scroll-root") as HTMLElement | null) ??
+          (document.querySelector("[data-scroll-container]") as HTMLElement | null) ??
+          (document.querySelector("[data-lenis-scroll-container]") as HTMLElement | null) ??
+          null;
+      }
+
+      // Stabilizza layout prima di misure ScrollTrigger (embedded salta GSAP ma beneficia del doppio rAF).
       await new Promise<void>((r) =>
         requestAnimationFrame(() => requestAnimationFrame(() => r()))
       );
@@ -297,15 +318,13 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
       ctx.scene.add(carouselGroup);
 
-      // ── ScrollTrigger ────────────────────────────────────────────────────
-      // ⚠️ FIX: nessuna chiave `scroller` → GSAP usa window per default.
-      // Passare `scroller: undefined` esplicitamente causa comportamenti imprevedibili.
+      // ── ScrollTrigger (solo pagina story con #chapters-wrapper) ───────────
       const BOTTOM_ZONE_PX = 280;
       const FIRST_IMAGE_HOLD = 0.08;
 
-      if (usedCount > 1) {
+      if (!isEmbedded && chaptersWrapper && ScrollTrigger && usedCount > 1) {
         const progressTrigger = ScrollTrigger.create({
-          trigger: chaptersWrapper,   // ← NO scroller: usa window (document scroll)
+          trigger: chaptersWrapper,
           ...(scrollerEl ? { scroller: scrollerEl } : {}),
           start: "top bottom",
           end: "bottom top+=50%",
@@ -335,36 +354,58 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
         triggers.push(progressTrigger);
       }
 
-      // Refresh progressivo: 120ms (layout stabile) + 600ms (font/immagini lazy)
-      ScrollTrigger.refresh();
-      const r1 = window.setTimeout(() => { if (!disposed) ScrollTrigger.refresh(); }, 120);
-      const r2 = window.setTimeout(() => { if (!disposed) ScrollTrigger.refresh(); }, 600);
+      const scheduleRefresh =
+        !isEmbedded && ScrollTrigger
+          ? () => {
+              if (refreshDebounceId) clearTimeout(refreshDebounceId);
+              refreshDebounceId = setTimeout(() => {
+                if (!disposed) ScrollTrigger!.refresh();
+                refreshDebounceId = null;
+              }, 150);
+            }
+          : () => {
+              if (refreshDebounceId) clearTimeout(refreshDebounceId);
+              refreshDebounceId = setTimeout(() => {
+                if (!disposed) triggerRender();
+                refreshDebounceId = null;
+              }, 150);
+            };
 
-      document.fonts?.ready.then(() => { if (!disposed) ScrollTrigger.refresh(); });
+      let refreshT1 = 0;
+      let refreshT2 = 0;
+      if (!isEmbedded && ScrollTrigger) {
+        ScrollTrigger.refresh();
+        refreshT1 = window.setTimeout(() => {
+          if (!disposed) ScrollTrigger!.refresh();
+        }, 120);
+        refreshT2 = window.setTimeout(() => {
+          if (!disposed) ScrollTrigger!.refresh();
+        }, 600);
 
-      window.addEventListener('load', () => {
-        if (!disposed) ScrollTrigger.refresh();
-      }, { once: true });
+        document.fonts?.ready.then(() => {
+          if (!disposed) ScrollTrigger!.refresh();
+        });
 
-      const scheduleRefresh = () => {
-        if (refreshDebounceId) clearTimeout(refreshDebounceId);
-        refreshDebounceId = setTimeout(() => {
-          if (!disposed) ScrollTrigger.refresh();
-          refreshDebounceId = null;
-        }, 150);
-      };
+        window.addEventListener(
+          "load",
+          () => {
+            if (!disposed) ScrollTrigger!.refresh();
+          },
+          { once: true }
+        );
+      }
 
       onResize = scheduleRefresh;
       window.addEventListener("resize", onResize, { passive: true });
 
-      if (scrollerEl) {
+      if (!isEmbedded && scrollerEl) {
         scrollerEl.addEventListener("scroll", scheduleRefresh, { passive: true });
-        scrollerScrollCleanup = () => scrollerEl.removeEventListener("scroll", scheduleRefresh);
+        scrollerScrollCleanup = () => scrollerEl!.removeEventListener("scroll", scheduleRefresh);
       }
 
       if (typeof ResizeObserver !== "undefined") {
         ro = new ResizeObserver(scheduleRefresh);
-        ro.observe(chaptersWrapper);
+        ro.observe(isEmbedded ? container : chaptersWrapper!);
       }
 
       io = new IntersectionObserver(
@@ -386,14 +427,18 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
       triggerRender();
 
       return () => {
-        clearTimeout(r1);
-        clearTimeout(r2);
+        clearTimeout(refreshT1);
+        clearTimeout(refreshT2);
       };
     })();
 
     // ── Render loop ─────────────────────────────────────────────────────────
     function tick() {
       if (!group || !ctx || disposed) return;
+
+      if (isEmbedded && usedCount > 1) {
+        targetT = ((Math.sin(performance.now() / 5500) + 1) / 2) * (usedCount - 1);
+      }
 
       currentT = currentT + (targetT - currentT) * LERP_ALPHA;
       if (Math.abs(currentT - targetT) < SNAP_T) currentT = targetT;
@@ -435,7 +480,11 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
 
       ctx.renderer.render(ctx.scene, ctx.camera);
 
-      if (Math.abs(currentT - targetT) < 0.01 && Date.now() - lastUpdate > IDLE_MS) {
+      const shouldIdleStop =
+        !(isEmbedded && usedCount > 1) &&
+        Math.abs(currentT - targetT) < 0.01 &&
+        Date.now() - lastUpdate > IDLE_MS;
+      if (shouldIdleStop) {
         stop();
         return;
       }
@@ -447,7 +496,7 @@ export default function WorkShowcase3D({ projects }: WorkShowcase3DProps) {
       disposed = true;
       doDispose();
     };
-  }, [canInit3D, showFallback, projects]);
+  }, [canInit3D, showFallback, projects, embeddedFeatured]);
 
   // ── Rendered height sincrona col parent (passata a FallbackShowcase) ────────
   // Il container ha h-[30vh] su mobile → leggiamo la CSS var per coerenza,

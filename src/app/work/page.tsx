@@ -1,19 +1,23 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { SectionReveal } from "@/components/motion/SectionReveal";
 import { projects } from "@/content/projects";
 import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
-import WorkShowcaseStory from "@/components/work/WorkShowcaseStory";
+import WorkFeaturedShowcase from "@/components/work/WorkFeaturedShowcase";
+import WorkProjectList from "@/components/work/WorkProjectList";
 import ProofGrid from "@/components/proof/proof-grid";
-import KeyboardHint from '@/components/ui/KeyboardHint';
 
-export const metadata = {
-  title: "Case Studies: scelte, vincoli, risultati",
+export const metadata: Metadata = {
+  title: "Portfolio e case study",
   description:
-    "Una selezione di progetti con dettagli tecnici essenziali: vincoli, decisioni e risultati. Racconto cosa ho fatto, perché, e quali metriche sono migliorate.",
+    "Progetti con problema, vincoli, stack e impatto. Un case study in evidenza e l’elenco completo: ogni scheda approfondisce decisioni e risultati.",
   alternates: { canonical: new URL("/work", site.url).href },
 };
 
 export default function WorkPage() {
+  const featuredSlug = projects[0]?.slug;
+
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -30,80 +34,80 @@ export default function WorkPage() {
     <div className="flex flex-col items-center w-full">
       <JsonLd data={itemListJsonLd} />
 
-      {/* HEADER PREMIUM 2026 */}
-      <header className="relative z-10 flex flex-col items-center justify-center pt-12 pb-8 text-center md:pt-20 md:pb-6 w-full max-w-4xl mx-auto px-5">
-        
-        {/* Micro-eyebrow "Status" Badge */}
-        <div className="mb-6 inline-flex items-center rounded-full border border-zinc-800/80 bg-zinc-900/50 px-3 py-1.5 text-xs font-medium text-zinc-400 backdrop-blur-md">
-          <span className="mr-2 flex h-1.5 w-1.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-amber-500"></span>
-          </span>
-          <span className="tracking-widest uppercase text-[10px]">Progetti in evidenza</span>
-        </div>
-
-        {/* Titolo Gradient Cinematografico */}
-        <h1 className="font-[var(--font-serif)] text-5xl md:text-7xl font-bold tracking-tight text-transparent bg-clip-text bg-gradient-to-b from-zinc-100 to-zinc-500 pb-2">
-          Portfolio
-        </h1>
-        
-        {/* Descrizione Bilanciata */}
-        <p className="mt-6 max-w-2xl text-base md:text-lg text-zinc-400 text-balance leading-relaxed">
-  Una selezione di progetti raccontati per scelte e risultati. Frontend, dati e integrazioni quando servono, con focus su performance, SEO e qualità del codice.
-</p>
-
-        {/* Micro-Scroll Indicator (Opzionale, invita a scendere verso il 3D) */}
-        <div className="mt-16 flex flex-col items-center opacity-70">
-  <KeyboardHint />
-</div>
-      </header>
-
-      {/* Mobile: solo messaggio invito desktop. Desktop (lg): showcase 3D/sticky. */}
-      <div className="mt-8 w-full px-5 lg:hidden">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-sm px-6 py-10 text-center">
-          <p className="text-sm text-zinc-400 md:text-base">
-            Guarda lo showcase in versione desktop
+      <SectionReveal as="header" className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-5 pb-8 pt-12 text-center md:pb-10 md:pt-20">
+        <div className="flex w-full flex-col items-center text-center" data-section-reveal>
+          <div className="ds-page-accent-rule mb-6" aria-hidden />
+          <p className="ds-eyebrow">Lavori selezionati</p>
+          <h1 className="mt-4 font-[var(--font-serif)] text-4xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:mt-5 sm:text-5xl sm:leading-[1.08]">
+            Case study e portfolio
+          </h1>
+          <p className="mt-6 max-w-2xl text-balance text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65] md:max-w-[42rem] md:text-lg">
+            In evidenza un progetto rappresentativo; sotto l’elenco completo. Ogni voce apre il case study con vincoli, stack, decisioni e impatto.
           </p>
         </div>
-      </div>
-      <div className="relative mt-8 z-20 w-full lg:left-1/2 lg:-ml-[50vw] lg:w-screen lg:max-w-none hidden lg:block">
-        <div className="w-full min-w-0">
-          <WorkShowcaseStory projects={projects} />
+      </SectionReveal>
+
+      <WorkFeaturedShowcase projects={projects} featuredSlug={featuredSlug} />
+
+      <SectionReveal
+        as="section"
+        className="relative z-20 mx-auto mt-16 w-full max-w-4xl px-5 sm:mt-20"
+        aria-labelledby="work-all-heading"
+      >
+        <div data-section-reveal>
+        <h2
+          id="work-all-heading"
+          className="font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+        >
+          Tutti i progetti
+        </h2>
+        <p className="mt-4 max-w-2xl text-sm leading-[1.65] text-[color:var(--ds-text-secondary)] sm:text-base">
+          Scorri e apri la scheda per il dettaglio: problema, soluzione e link utili sullo stesso URL pubblicato in sitemap.
+        </p>
         </div>
+        <div className="mt-8" data-section-reveal>
+          <WorkProjectList
+            projects={projects}
+            excludeSlugs={
+              featuredSlug && projects.length > 1 ? [featuredSlug] : []
+            }
+          />
+        </div>
+      </SectionReveal>
+
+      <div className="mx-auto mt-20 w-full max-w-4xl px-5 sm:mt-24">
+        <ProofGrid />
       </div>
 
-      {/* Risultati */}
-      <section className="mt-16 w-full max-w-4xl mx-auto px-5">
-        <ProofGrid />
-      </section>
-
-      {/* CTA */}
-      <section className="mt-16 w-full max-w-4xl mx-auto px-5 pb-4" aria-labelledby="work-cta-heading">
-        <div className="rounded-2xl border border-white/10 bg-zinc-900/60 backdrop-blur-sm p-6 md:p-8">
+      <SectionReveal
+        as="section"
+        className="mx-auto mt-20 w-full max-w-4xl px-5 pb-6 sm:mt-24"
+        aria-labelledby="work-cta-heading"
+      >
+        <div className="ds-band p-6 md:p-8">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-            <div>
-            <h2 className="font-medium">Vuoi parlare di un progetto?</h2>
-            <p className="mt-1 text-sm text-zinc-300">
-              Mandami contesto, obiettivi e vincoli. Ti rispondo con priorità, rischi e prossimi step.
-            </p>
+            <div data-section-reveal>
+              <h2
+                id="work-cta-heading"
+                className="font-[var(--font-serif)] text-xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-2xl"
+              >
+                Vuoi qualcosa di simile?
+              </h2>
+              <p className="mt-3 max-w-xl text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
+                Scrivimi obiettivo, stack e vincoli: ti rispondo con priorità, rischi e prossimi passi concreti.
+              </p>
             </div>
-            <div className="flex shrink-0 flex-wrap gap-3">
-              <Link
-                href="/contact"
-                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full bg-white px-6 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              >
-                Parliamo
+            <div className="flex shrink-0 flex-wrap gap-3" data-section-reveal>
+              <Link href="/contact" className="ds-btn-primary px-6">
+                Scrivimi con contesto
               </Link>
-              <Link
-                href="/services/agenzie"
-                className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 bg-transparent px-6 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-              >
-                Per agenzie
+              <Link href="/services/agenzie" className="ds-btn-secondary px-6">
+                Collaborazioni agenzie
               </Link>
             </div>
           </div>
         </div>
-      </section>
+      </SectionReveal>
     </div>
   );
 }

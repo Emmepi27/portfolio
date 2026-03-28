@@ -8,8 +8,8 @@ const WorkShowcase3D = dynamic(
   { ssr: false }
 );
 
-type Props = { projects: Project[] };
+type Props = { projects: Project[]; embeddedFeatured?: boolean };
 
-export default function WorkShowcase3DLoader({ projects }: Props) {
-  return <WorkShowcase3D projects={projects} />;
+export default function WorkShowcase3DLoader({ projects, embeddedFeatured }: Props) {
+  return <WorkShowcase3D projects={projects} embeddedFeatured={embeddedFeatured} />;
 }

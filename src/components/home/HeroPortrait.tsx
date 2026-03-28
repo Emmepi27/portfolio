@@ -2,42 +2,36 @@ import Image from "next/image";
 
 const PORTRAIT_SRC = "/images/portrait.webp";
 
-export default function HeroPortrait() {
+/** Avatar circolare: hero mobile, sotto eyebrow (non in fondo alla colonna). */
+export function HeroPortraitMobile() {
   return (
-    <>
-      {/* Mobile: round avatar + 2 lines micro-proof */}
-      <div className="flex min-w-0 items-center gap-4 lg:hidden">
-        <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-full border border-white/10 bg-white/[0.04]">
-          <Image
-            src={PORTRAIT_SRC}
-            alt="Manuel Michael Pammer, Web Engineer"
-            width={96}
-            height={96}
-            sizes="96px"
-            className="h-full w-full object-cover"
-            priority
-          />
-        </div>
-        <div className="min-w-0 flex-1">
-  <p className="text-xs font-medium text-zinc-300">Web Engineer · GIS/PostGIS</p>
-  <p className="text-xs text-zinc-400">Siti veloci · SEO tecnico · Zero sorprese</p>
-</div>
-      </div>
+    <div className="relative h-[5.5rem] w-[5.5rem] shrink-0 overflow-hidden rounded-full border border-[color:var(--ds-border)] bg-[color:var(--ds-surface-1)] sm:h-24 sm:w-24">
+      <Image
+        src={PORTRAIT_SRC}
+        alt="ManuDesign, Web Engineer"
+        fill
+        sizes="(max-width: 639px) 88px, 96px"
+        className="object-cover"
+        priority
+      />
+    </div>
+  );
+}
 
-      {/* Desktop: portrait card ridotto. LCP: priority per caricamento above-the-fold. */}
-      <div className="relative hidden w-full min-w-0 max-w-[300px] shrink-0 overflow-hidden rounded-2xl border border-white/10 bg-white/[0.03] lg:block">
-        <div className="relative aspect-[2/3] w-full">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_70%_20%,rgba(252,211,77,0.08),transparent)]" aria-hidden />
-          <Image
-            src={PORTRAIT_SRC}
-            alt="Manuel Michael Pammer, Web Engineer"
-            fill
-            sizes="(min-width: 1024px) 600px, 96px"
-            className="object-cover"
-            priority
-          />
-        </div>
+/** Cornice editoriale desktop. */
+export function HeroPortraitDesktop() {
+  return (
+    <div className="ds-elevated-frame relative hidden w-full min-w-0 max-w-[272px] shrink-0 overflow-hidden lg:block">
+      <div className="relative aspect-[2/3] w-full">
+        <Image
+          src={PORTRAIT_SRC}
+          alt="ManuDesign, Web Engineer"
+          fill
+          sizes="(min-width: 1024px) 600px, 96px"
+          className="object-cover"
+          priority
+        />
       </div>
-    </>
+    </div>
   );
 }

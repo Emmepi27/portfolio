@@ -6,6 +6,10 @@ import type { Project } from '@/content/projects';
 import WorkShowcase3DLoader from './WorkShowcase3DLoader';
 
 /**
+ * Legacy / alternativa: showcase a capitoli + scroll pacing + 3D legato a `#chapters-wrapper`.
+ * Dalla Fase 4A la pagina `/work` usa `WorkFeaturedShowcase` + `WorkProjectList`; questo componente
+ * resta nel repo per riuso o rollback senza perdere il lavoro sullo scroll-driven 3D.
+ *
  * WorkShowcaseStory — definitive fix
  *
  * ROOT CAUSE dei bug mobile:
@@ -163,7 +167,7 @@ export default function WorkShowcaseStory({ projects }: { projects: Project[] })
                     'lg:sticky lg:top-[34vh] lg:mb-0 lg:p-10',
                     // Look base
                     'max-w-full overflow-hidden',
-                    'bg-zinc-950/60 backdrop-blur-sm lg:bg-transparent lg:backdrop-blur-none',
+                    'border border-[color:var(--ds-border)] bg-[color:var(--ds-surface-1)] lg:border-transparent lg:bg-transparent',
                     // Stato base: quasi trasparente
                     'opacity-[0.28] transition-all duration-700 ease-out',
                     'hover:opacity-80',
@@ -171,17 +175,17 @@ export default function WorkShowcaseStory({ projects }: { projects: Project[] })
                 >
                   {/* Header: numero / totale */}
                   <div className="mb-4 flex items-center justify-between lg:mb-6">
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-zinc-500 md:text-xs">
-                      Case Study
+                    <span className="text-xs font-medium text-zinc-500">
+                      Case study
                     </span>
-                    <span className="font-mono text-xs tabular-nums text-zinc-500">
+                    <span className="text-xs tabular-nums text-zinc-500">
                       {currentNum}&nbsp;/&nbsp;{totalLength}
                     </span>
                   </div>
 
                   <Link
                     href={`/work/${p.slug}`}
-                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    className="block rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ds-focus-ring)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--ds-bg-base)]"
                     aria-label={`${p.title} — Leggi il case study`}
                   >
                     <h3
@@ -194,7 +198,7 @@ export default function WorkShowcaseStory({ projects }: { projects: Project[] })
                       {p.impact?.[0] ?? p.summary}
                     </p>
 
-                    <p className="mt-4 font-mono text-xs text-zinc-600 lg:mt-6 lg:text-sm">
+                    <p className="mt-4 text-xs leading-relaxed text-zinc-500 lg:mt-6 lg:text-sm">
                       {p.stack?.slice(0, 3).join(' · ')}
                       {(p.stack?.length ?? 0) > 3 ? ' …' : ''}
                     </p>

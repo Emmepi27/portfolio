@@ -2,12 +2,15 @@
 
 import * as React from "react";
 import dynamic from "next/dynamic";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
+import { getVisualPresetFromPathname } from "@/lib/background/visualPreset";
 import BackgroundDebugOverlay from "./BackgroundDebugOverlay";
 
 const BackgroundSystem = dynamic(() => import("./BackgroundSystem"), { ssr: false });
 
 export default function BackgroundSystemClient() {
+  const pathname = usePathname();
+  const visualPreset = getVisualPresetFromPathname(pathname);
   const searchParams = useSearchParams();
   const bgMode = searchParams.get("bg"); // "off" | "debug" | null = product
   const [ready, setReady] = React.useState(false);
@@ -40,8 +43,8 @@ export default function BackgroundSystemClient() {
 
   return (
     <>
-      <BackgroundSystem />
-      {bgMode === "debug" && <BackgroundDebugOverlay />}
+      <BackgroundSystem visualPreset={visualPreset} />
+      {bgMode === "debug" && <BackgroundDebugOverlay visualPreset={visualPreset} />}
     </>
   );
 }

@@ -11,6 +11,7 @@
     "perf:analyze": "node scripts/analyze-perf-trace.mjs"
   },
   "dependencies": {
+    "@gsap/react": "^2.1.2",
     "@vercel/analytics": "^1.6.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.30.0",
@@ -25,9 +26,9 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
-    "@types/three": "^0.169.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/three": "^0.169.0",
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",

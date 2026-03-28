@@ -1,33 +1,42 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { SectionReveal } from "@/components/motion/SectionReveal";
 import { site } from "@/config/site";
 
-export const metadata = {
-  title: "About Manuel Michael Pammer — Metodologia & Stack (React/Next.js)",
+export const metadata: Metadata = {
+  title: "Chi sono — metodo, stack, collaborazione",
   description:
-    "Sono Manuel: giovane e motivato a realizzare siti che funzionano davvero. Wordpress/Nuxt/Vue/Next/React, SEO tecnico e performance. Lavoro con vincoli chiari e risultati verificabili.",
+    "Web engineer con focus su obiettivi misurabili, vincoli espliciti e delivery verificabile. Next.js, SEO tecnico, performance e WebGIS (PostGIS, MapLibre) quando serve.",
   alternates: { canonical: new URL("/about", site.url).href },
 };
 
 export default function AboutPage() {
   return (
-    <div className="space-y-10">
-      <header className="space-y-3">
-        <h1 className="font-[var(--font-serif)] text-4xl">Chi sono</h1>
-        <p className="max-w-2xl text-zinc-300">
-          Costruisco prodotti web con particolare attenzione ai dettagli: obiettivi misurabili, vincoli chiari e delivery pulita.
-        </p>
-        <p className="max-w-2xl text-zinc-300">
-          Full-stack frontend-heavy, con focus su Core Web Vitals, SEO tecnico e WebGIS quando serve.
-        </p>
-        <p className="max-w-2xl text-zinc-300">
-          Mi interessa la sostanza: performance, accessibilità e manutenzione semplice.
-        </p>
-      </header>
+    <div className="space-y-12">
+      <SectionReveal as="header" className="space-y-5">
+        <div className="space-y-5" data-section-reveal>
+          <div className="ds-page-accent-rule" aria-hidden />
+          <h1 className="font-[var(--font-serif)] text-4xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-5xl sm:leading-[1.08]">
+            Chi sono
+          </h1>
+          <p className="max-w-2xl text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65]">
+            Lavoro su prodotti web con obiettivi chiari, vincoli espliciti e consegne che si possono verificare (CWV, SEO, mobile).
+          </p>
+          <p className="max-w-2xl text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65]">
+            Full-stack con forte orientamento al frontend: Next.js, TypeScript, SEO tecnico e, quando serve, dati geografici (PostGIS, GeoDjango, MapLibre).
+          </p>
+          <p className="max-w-2xl text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65]">
+            Priorità a performance, accessibilità e codice che il team può mantenere nel tempo.
+          </p>
+        </div>
+      </SectionReveal>
 
-      <section className="grid gap-5 md:grid-cols-3">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6 md:col-span-2">
-          <h2 className="font-medium">Come lavoro</h2>
-          <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-300">
+      <SectionReveal as="section" className="grid gap-5 md:grid-cols-3">
+        <div className="ds-panel p-6 md:col-span-2" data-section-reveal>
+          <h2 className="font-[var(--font-serif)] text-lg font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-xl">
+            Come lavoro
+          </h2>
+          <ul className="mt-4 list-disc space-y-2 pl-5 text-base leading-[1.6] text-[color:var(--ds-text-secondary)]">
             <li>Parto dall’obiettivo: lead, vendite, prenotazioni.</li>
             <li>Metto in chiaro vincoli e rischi: tempo, budget, SEO, performance, legacy.</li>
             <li>Interventi piccoli e mirati: fix, refactor, cleanup responsive senza rompere il resto.</li>
@@ -35,46 +44,60 @@ export default function AboutPage() {
           </ul>
         </div>
 
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-          <h2 className="font-medium">Cosa faccio</h2>
-          <div className="mt-3 space-y-2 text-sm text-zinc-300">
-            <p><span className="text-zinc-100">Frontend:</span> Nuxt.js / Vue.js /Next.js / React / TypeScript</p>
-            <p><span className="text-zinc-100">Performance:</span> Core Web Vitals, bundle/asset hygiene</p>
-            <p><span className="text-zinc-100">SEO tecnico:</span> metadata/canonical/sitemap + structured data </p>
-            <p><span className="text-zinc-100">WebGIS:</span> PostGIS / GeoDjango / MapLibre </p>
+        <div className="ds-card p-6" data-section-reveal>
+          <h2 className="font-[var(--font-serif)] text-lg font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-xl">
+            Cosa faccio
+          </h2>
+          <div className="mt-4 space-y-3 text-sm leading-[1.65] text-[color:var(--ds-text-secondary)] sm:text-base">
+            <p>
+              <span className="font-medium text-[color:var(--ds-text-primary)]">Frontend:</span> Next.js, React, TypeScript, Vue/Nuxt quando il contesto lo richiede
+            </p>
+            <p>
+              <span className="font-medium text-[color:var(--ds-text-primary)]">Performance:</span> Core Web Vitals, bundle e asset hygiene
+            </p>
+            <p>
+              <span className="font-medium text-[color:var(--ds-text-primary)]">SEO tecnico:</span> metadata, canonical, sitemap, structured data
+            </p>
+            <p>
+              <span className="font-medium text-[color:var(--ds-text-primary)]">WebGIS:</span> PostGIS, GeoDjango, MapLibre
+            </p>
           </div>
         </div>
-      </section>
+      </SectionReveal>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <h2 className="font-medium">Perché fidarsi</h2>
-        <ul className="mt-3 list-disc space-y-2 pl-5 text-sm text-zinc-300">
+      <SectionReveal as="section" className="ds-card p-6">
+        <div data-section-reveal>
+        <h2 className="font-[var(--font-serif)] text-lg font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-xl">
+          Perché fidarsi
+        </h2>
+        <ul className="mt-4 list-disc space-y-2 pl-5 text-base leading-[1.6] text-[color:var(--ds-text-secondary)]">
           <li>Background internazionale: nato in Austria, cresciuto a Roma, Erasmus a Mainz (DE). IT/DE madrelingua, EN C1.</li>
           <li>Affidabilità operativa: ho lavorato per mantenermi gli studi e realizzare i miei sogni → consegne, priorità, responsabilità.</li>
           <li>Gli scacchi e il volo libero (parapendio) mi hanno dato un metodo: osservare, scegliere bene, e migliorare per iterazioni.</li>
         </ul>
-      </section>
-
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <h2 className="font-medium">Prossimo passo</h2>
-        <p className="mt-2 text-sm text-zinc-300">
-          Se hai un sito lento, un e-commerce che non converte o un refactor da fare senza rischi, scrivimi con: obiettivo, vincoli, stack e link. Ti rispondo con priorità e piano d’azione.
-        </p>
-        <div className="mt-5 flex flex-wrap gap-3">
-          <Link
-            href="/work"
-            className="rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Vai ai case study
-          </Link>
-          <Link
-            href="/contact"
-            className="rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Contattami
-          </Link>
         </div>
-      </section>
+      </SectionReveal>
+
+      <SectionReveal as="section" className="ds-band p-6 md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div data-section-reveal>
+            <h2 className="font-[var(--font-serif)] text-xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-2xl">
+              Prossimo passo
+            </h2>
+            <p className="mt-3 max-w-xl text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
+              Se hai un sito lento, un refactor da fare senza regressioni o un nuovo build con vincoli SEO, scrivimi con obiettivo, stack e link: ti rispondo con priorità e piano d’azione.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-3" data-section-reveal>
+            <Link href="/work" className="ds-btn-primary px-6">
+              Apri i case study
+            </Link>
+            <Link href="/contact" className="ds-btn-secondary px-6">
+              Scrivimi con contesto
+            </Link>
+          </div>
+        </div>
+      </SectionReveal>
     </div>
   );
 }

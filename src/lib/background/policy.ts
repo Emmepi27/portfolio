@@ -40,7 +40,7 @@ const SCROLL_ROOT_ID = "scroll-root";
 // Scroll gate: blocca commit durante scroll, commit una volta finito
 const SCROLL_END_MS = 220;
 
-// Densità globale (no zones)
+// Densità con menu aperto (modulazione pathname → `visualPreset.ts` + BackgroundSystem).
 const DENSITY_MAIN = 1;
 const DENSITY_MENU = 0.5;
 

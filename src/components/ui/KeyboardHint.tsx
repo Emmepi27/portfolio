@@ -14,9 +14,8 @@ function KeyCap({ children, active = false }: { children: React.ReactNode; activ
     <div
       className={cn(
         'grid place-items-center rounded-xl px-3 py-2 text-[11px] font-medium tracking-wide text-zinc-200',
-        'border border-white/10 bg-white/[0.04] backdrop-blur-md',
-        'shadow-[0_0_0_1px_rgba(255,255,255,0.04),0_12px_30px_rgba(0,0,0,0.35)]',
-        active && 'border-amber-300/30 text-amber-200 bg-amber-300/[0.06]'
+        'border border-[color:var(--ds-border)] bg-[color:var(--ds-surface-1)]',
+        active && 'border-[color:var(--ds-accent)]/40 text-[color:var(--ds-accent)] bg-[color:var(--ds-accent-soft)]'
       )}
       aria-hidden="true"
     >
@@ -33,7 +32,8 @@ export default function KeyboardHint({
   const [pulse, setPulse] = React.useState(false);
 
   React.useEffect(() => {
-    // piccolo “hint” periodico sul tasto ↓
+    if (typeof window === 'undefined') return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const id = window.setInterval(() => setPulse((v) => !v), 900);
     return () => window.clearInterval(id);
   }, []);
@@ -64,15 +64,17 @@ export default function KeyboardHint({
       </div>
 
       {/* down arrow animated hint */}
-      <div className="flex flex-col items-center gap-1 text-[10px] uppercase tracking-[0.2em] text-zinc-500">
+      <div className="flex flex-col items-center gap-1 text-[10px] uppercase tracking-[0.14em] text-[color:var(--ds-text-muted)]">
         <span className="sr-only">{label}</span>
         <span aria-hidden="true">Navigate</span>
 
         <span
           aria-hidden="true"
-          className="inline-flex items-center justify-center text-amber-300/80"
+          className="inline-flex items-center justify-center text-[color:var(--ds-accent)]"
         >
-          <span className="animate-[kbd-bounce_1.2s_ease-in-out_infinite]">↓</span>
+          <span className="animate-[kbd-bounce_1.2s_ease-in-out_infinite] motion-reduce:animate-none">
+            ↓
+          </span>
         </span>
       </div>
     </div>

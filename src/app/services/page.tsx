@@ -1,12 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { Wrench, Search, Rocket } from "lucide-react";
+import { SectionReveal } from "@/components/motion/SectionReveal";
 import { site } from "@/config/site";
 import ProofGrid from "@/components/proof/proof-grid";
 
-export const metadata = {
-  title: "Servizi: siti veloci, indicizzabili, manutenibili",
+export const metadata: Metadata = {
+  title: "Servizi — build, SEO tecnico, performance",
   description:
-    "Build e refactor mirati per siti moderni: caricamento rapido, metadata corretti, niente sorprese in produzione. Focus su qualità del codice e risultati misurabili.",
+    "Fix mirati, SEO tecnico e rebuild Next.js: siti veloci, indicizzabili e manutenibili. Interventi tracciabili su Core Web Vitals, metadata e handoff.",
   alternates: { canonical: new URL("/services", site.url).href },
 };
 
@@ -45,70 +47,69 @@ const services = [
 
 export default function ServicesPage() {
   return (
-    <div className="space-y-10">
-      <header className="space-y-3">
-        <h1 className="font-[var(--font-serif)] text-4xl">Servizi</h1>
-        <p className="max-w-2xl text-zinc-300">
-          Lavoro su due fronti: migliorare siti esistenti e costruire
-          da zero con performance/SEO by design.
-        </p>
-        <p className="text-sm">
-          <Link
-            href="/services/agenzie"
-            className="text-amber-300/90 underline decoration-amber-300/50 underline-offset-2 hover:text-amber-300 focus-visible:rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Per agenzie →
-          </Link>
-        </p>
-      </header>
+    <div className="space-y-12">
+      <SectionReveal as="header" className="space-y-5">
+        <div className="space-y-5" data-section-reveal>
+          <div className="ds-page-accent-rule" aria-hidden />
+          <h1 className="font-[var(--font-serif)] text-4xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-5xl sm:leading-[1.08]">
+            Servizi
+          </h1>
+          <p className="max-w-2xl text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65]">
+            Miglioro siti esistenti e ne costruisco di nuovi con performance e SEO tecnico come requisiti, non come optional.
+          </p>
+          <p className="text-sm leading-relaxed text-[color:var(--ds-text-secondary)]">
+            <Link
+              href="/services/agenzie"
+              className="ds-link-accent font-medium"
+            >
+              Modalità collaborazione con agenzie
+            </Link>
+          </p>
+        </div>
+      </SectionReveal>
 
-      <section className="space-y-5">
+      <div className="space-y-5">
         <ProofGrid compact />
-      </section>
+      </div>
 
-      <section className="grid gap-5 md:grid-cols-3">
+      <SectionReveal as="section" className="grid gap-5 md:grid-cols-3">
         {services.map((s) => (
-          <div
-            key={s.title}
-            className="rounded-2xl border border-white/10 bg-white/[0.03] p-6"
-          >
-            <s.icon className="h-5 w-5 text-amber-300" />
-            <h2 className="mt-4 font-medium">{s.title}</h2>
-            <p className="mt-2 text-sm text-zinc-300">{s.desc}</p>
+          <div key={s.title} className="ds-card p-6" data-section-reveal>
+            <s.icon className="h-5 w-5 text-[color:var(--ds-text-secondary)]" aria-hidden />
+            <h2 className="mt-4 font-[var(--font-serif)] text-lg font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-xl">
+              {s.title}
+            </h2>
+            <p className="mt-3 text-sm leading-[1.65] text-[color:var(--ds-text-secondary)] sm:text-base">{s.desc}</p>
 
-            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm text-zinc-300">
+            <ul className="mt-4 list-disc space-y-2 pl-5 text-sm leading-[1.6] text-[color:var(--ds-text-secondary)]">
               {s.bullets.map((b) => (
                 <li key={b}>{b}</li>
               ))}
             </ul>
           </div>
         ))}
-      </section>
+      </SectionReveal>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="font-medium">Vuoi parlare di un progetto?</h2>
-            <p className="mt-1 text-sm text-zinc-300">
-              Mandami contesto, obiettivi e vincoli. Ti rispondo con priorità, rischi e prossimi step.
+      <SectionReveal as="section" className="ds-band p-6 md:p-8">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <div data-section-reveal>
+            <h2 className="font-[var(--font-serif)] text-xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-2xl">
+              Prossimo passo
+            </h2>
+            <p className="mt-3 max-w-xl text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
+              Includi obiettivo, link al sito e vincoli (tempi, stack, SEO). Ti rispondo con priorità e piano d’azione.
             </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/contact"
-              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Parliamo
+          <div className="flex shrink-0 flex-wrap gap-3" data-section-reveal>
+            <Link href="/contact" className="ds-btn-primary px-6">
+              Scrivimi con contesto
             </Link>
-            <Link
-              href="/services/agenzie"
-              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Per agenzie
+            <Link href="/services/agenzie" className="ds-btn-secondary px-6">
+              Collaborazioni agenzie
             </Link>
           </div>
         </div>
-      </section>
+      </SectionReveal>
     </div>
   );
 }

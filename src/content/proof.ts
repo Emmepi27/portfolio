@@ -30,10 +30,10 @@ export const proofCards: ProofCard[] = [
     external: true,
   },
   {
-    title: "E-commerce (Shopify)",
-    subtitle: "Markets IT/EN + checkout/shipping",
-    description: "pronto per vendite internazionali",
-    href: "/work/atelier14-shopify",
+    title: "Vetrina creativa",
+    subtitle: "WebGL + i18n IT/EN/DE",
+    description: "jiwacreativestudio.com",
+    href: "/work/jiwa-creative-studio",
   },
   {
     title: "Traffico",

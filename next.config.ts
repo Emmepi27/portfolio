@@ -13,7 +13,12 @@ const nextConfig: NextConfig = {
       },
       {
         source: "/work/atelier14",
-        destination: "/work/atelier14-shopify",
+        destination: "/work",
+        permanent: true,
+      },
+      {
+        source: "/work/atelier14-shopify",
+        destination: "/work",
         permanent: true,
       },
     ];

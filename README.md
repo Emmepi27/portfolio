@@ -1,4 +1,4 @@
-# Portfolio Website (Next.js App Router) Manuel Pammer
+# Portfolio Website (Next.js App Router) ManuDesign
 
 Live: https://manuelpammer.vercel.app/
 Stack: Next.js (App Router) · TypeScript · Tailwind · SEO (Metadata API) · Performance-first
@@ -49,7 +49,7 @@ npm run start
 npm run lint
 License / usage
 
-© 2026 Manuel Pammer. All rights reserved.
+© 2026 ManuDesign. All rights reserved.
 
 This repository is published to showcase the work.
 No permission is granted to use, copy, modify, merge, publish, distribute, sublicense, and/or sell any part of the code without prior written consent.

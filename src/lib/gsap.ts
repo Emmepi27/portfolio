@@ -1,3 +1,5 @@
+import { GSAP_SCROLL_ROOT_SELECTOR } from "@/lib/gsapDiscipline";
+
 export type ScrollTriggerInstance = { kill: () => void; progress: number };
 
 export type ScrollTriggerAPI = {
@@ -24,7 +26,12 @@ let gsapScrollTriggerPromise: Promise<{
 /**
  * Lazy load GSAP + ScrollTrigger once; register ScrollTrigger with GSAP.
  * Use for scroll-driven 3D showcase (e.g. WorkShowcase3D).
+ *
+ * Disciplina React: preferire `useGSAP` / `useDisciplinedMatchMedia` per nuovi tween;
+ * questo loader resta per codice imperativo che gia usa ScrollTrigger.
+ * Scroller sito: `scroller: GSAP_SCROLL_ROOT_SELECTOR` quando non e `window`.
  */
+export { GSAP_SCROLL_ROOT_SELECTOR };
 export async function loadGsapScrollTrigger(): Promise<{
   gsap: { registerPlugin: (...args: object[]) => void };
   ScrollTrigger: ScrollTriggerAPI;

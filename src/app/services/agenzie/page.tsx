@@ -1,14 +1,16 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import { SectionReveal } from "@/components/motion/SectionReveal";
 import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
 import { agencyProof } from "@/content/proof";
 import { agencyEngagement } from "@/content/engagement";
 import { projects } from "@/content/projects";
 
-export const metadata = {
-  title: "Collaborazioni con agenzie | Web Developer Next.js + SEO tecnico",
+export const metadata: Metadata = {
+  title: "Collaborazioni con agenzie",
   description:
-    "Collaborazioni agenzia: supporto delivery, refactor e SEO tecnico su Next.js. Overflow capacity, audit, build PR-based e handoff. Preventivo rapido 24–48h.",
+    "Supporto delivery per agenzie: Next.js, refactor, SEO tecnico e performance. Overflow capacity, audit, PR-based e handoff documentato. Preventivo in 24–48h.",
   alternates: { canonical: new URL("/services/agenzie", site.url).href },
 };
 
@@ -52,7 +54,7 @@ const processSteps = [
 ];
 
 const olivier = projects.find((p) => p.slug === "olivier-estetica-sartoriale");
-const atelier14 = projects.find((p) => p.slug === "atelier14-shopify");
+const jiwa = projects.find((p) => p.slug === "jiwa-creative-studio");
 
 export default function AgenziePage() {
   const base = site.url.replace(/\/$/, "");
@@ -72,58 +74,70 @@ export default function AgenziePage() {
     agencyEngagement.sprintDurationWeeks != null;
 
   return (
-    <div className="space-y-14">
+    <div className="space-y-12">
       <JsonLd data={breadcrumbJsonLd} />
 
-      <section className="pt-6 space-y-6" aria-labelledby="agenzie-heading">
-        <h1 id="agenzie-heading" className="font-[var(--font-serif)] text-4xl md:text-5xl">
-          Collaborazioni con agenzie: Web Developer Next.js / SEO tecnico
-        </h1>
-        <p className="max-w-2xl text-zinc-300">
-          Supporto delivery, performance, refactor e SEO tecnico. Lavoro su overflow capacity, audit, build PR-based e handoff con documentazione. White-label e integrazione con i vostri sprint.
-        </p>
-        <div className="flex flex-wrap gap-3">
-          <Link
-            href="/contact"
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full bg-white px-5 py-2.5 text-sm font-medium text-black hover:bg-zinc-200 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+      <SectionReveal as="section" className="space-y-5" aria-labelledby="agenzie-heading">
+        <div className="space-y-5" data-section-reveal>
+          <div className="ds-page-accent-rule" aria-hidden />
+          <h1
+            id="agenzie-heading"
+            className="font-[var(--font-serif)] text-4xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-5xl sm:leading-[1.08]"
           >
-            Parliamo
+            Collaborazioni con agenzie
+          </h1>
+          <p className="max-w-2xl text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65]">
+            Supporto su delivery, performance, refactor e SEO tecnico in modalità white-label. Overflow capacity, audit, build PR-based e handoff con documentazione, allineato ai vostri sprint.
+          </p>
+          <div className="flex flex-wrap gap-3 pt-1">
+          <Link href="/contact" className="ds-btn-primary px-6">
+            Apri un brief
           </Link>
-          <Link
-            href="/work"
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Vedi i miei rebuild Next.js con SEO tecnico
+          <Link href="/work" className="ds-btn-secondary px-6">
+            Case study pubblici
           </Link>
         </div>
-      </section>
+        </div>
+      </SectionReveal>
 
-      <section>
-        <h2 className="font-[var(--font-serif)] text-2xl mb-4">Cosa posso fare per le agenzie</h2>
+      <SectionReveal as="section">
+        <h2
+          className="mb-4 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          data-section-reveal
+        >
+          Cosa posso fare per le agenzie
+        </h2>
         <ul className="grid gap-3 sm:grid-cols-2">
           {capabilities.map((c) => (
             <li
               key={c}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-sm text-zinc-300"
+              className="ds-card p-5 text-sm text-[color:var(--ds-text-secondary)]"
+              data-section-reveal
             >
               {c}
             </li>
           ))}
         </ul>
-      </section>
+      </SectionReveal>
 
-      <section>
-        <h2 className="font-[var(--font-serif)] text-2xl mb-4">Proof</h2>
+      <SectionReveal as="section">
+        <h2
+          className="mb-4 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          data-section-reveal
+        >
+          Proof
+        </h2>
         <ul className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {agencyProof.map((p) => (
             <li
               key={p.label}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="ds-card p-5"
+              data-section-reveal
             >
-              <div className="text-xs text-zinc-400">{p.label}</div>
-              <p className="mt-2 text-sm text-zinc-300">{p.outcome}</p>
+              <div className="text-xs text-[color:var(--ds-text-muted)]">{p.label}</div>
+              <p className="mt-2 text-sm text-[color:var(--ds-text-secondary)]">{p.outcome}</p>
               {(p.before != null && p.after != null) || p.deltaLabel ? (
-                <p className="mt-2 text-xs text-amber-300/90">
+                <p className="mt-2 text-xs text-[color:var(--ds-text-secondary)]">
                   {p.before != null && p.after != null
                     ? `${p.before} → ${p.after}`
                     : p.deltaLabel}
@@ -132,13 +146,18 @@ export default function AgenziePage() {
             </li>
           ))}
         </ul>
-      </section>
+      </SectionReveal>
 
-      <section>
-        <h2 className="font-[var(--font-serif)] text-2xl mb-4">Modalità di collaborazione</h2>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
+      <SectionReveal as="section">
+        <h2
+          className="mb-4 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          data-section-reveal
+        >
+          Modalità di collaborazione
+        </h2>
+        <div className="ds-band p-6" data-section-reveal>
           {hasEngagementNumbers ? (
-            <ul className="space-y-2 text-sm text-zinc-300">
+            <ul className="space-y-2 text-sm text-[color:var(--ds-text-secondary)]">
               {agencyEngagement.hourlyRateEUR != null && (
                 <li>Tariffa oraria: €{agencyEngagement.hourlyRateEUR}/h</li>
               )}
@@ -150,74 +169,81 @@ export default function AgenziePage() {
               )}
             </ul>
           ) : (
-            <p className="text-sm text-zinc-300">
+            <p className="text-sm text-[color:var(--ds-text-secondary)]">
               Modalità e tariffa: su richiesta (preventivo rapido 24–48h).
             </p>
           )}
         </div>
-      </section>
+      </SectionReveal>
 
-      <section>
-        <h2 className="font-[var(--font-serif)] text-2xl mb-4">FAQ collaborazioni agenzia</h2>
+      <SectionReveal as="section">
+        <h2
+          className="mb-4 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          data-section-reveal
+        >
+          FAQ collaborazioni agenzia
+        </h2>
         <dl className="space-y-4">
           {faqs.map((faq) => (
             <div
               key={faq.q}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="ds-card p-5"
+              data-section-reveal
             >
-              <dt className="font-medium text-zinc-100">{faq.q}</dt>
-              <dd className="mt-2 text-sm text-zinc-300">{faq.a}</dd>
+              <dt className="font-medium text-[color:var(--ds-text-primary)]">{faq.q}</dt>
+              <dd className="mt-2 text-sm text-[color:var(--ds-text-secondary)]">{faq.a}</dd>
             </div>
           ))}
         </dl>
-      </section>
+      </SectionReveal>
 
-      <section>
-        <h2 className="font-[var(--font-serif)] text-2xl mb-4">Processo</h2>
+      <SectionReveal as="section">
+        <h2
+          className="mb-4 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          data-section-reveal
+        >
+          Processo
+        </h2>
         <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {processSteps.map((s) => (
             <li
               key={s.step}
-              className="rounded-2xl border border-white/10 bg-white/[0.03] p-5"
+              className="ds-card p-5"
+              data-section-reveal
             >
-              <span className="text-xs text-amber-300">{s.step}</span>
-              <h3 className="mt-2 font-medium">{s.title}</h3>
-              <p className="mt-1 text-sm text-zinc-300">{s.desc}</p>
+              <span className="text-xs font-medium tabular-nums text-[color:var(--ds-text-muted)]">{s.step}</span>
+              <h3 className="mt-2 font-[var(--font-serif)] font-semibold text-[color:var(--ds-text-primary)]">{s.title}</h3>
+              <p className="mt-2 text-sm leading-[1.65] text-[color:var(--ds-text-secondary)]">{s.desc}</p>
             </li>
           ))}
         </ol>
-      </section>
+      </SectionReveal>
 
-      <section className="rounded-2xl border border-white/10 bg-white/[0.03] p-6">
-        <h2 className="font-medium">Esempi concreti</h2>
-        <p className="mt-2 text-sm text-zinc-300">
-          Rebuild Next.js con i18n e SEO, refactor Shopify con add-on: vedi i progetti con vincoli e outcome.
+      <SectionReveal as="section" className="ds-card p-6">
+        <div data-section-reveal>
+        <h2 className="font-[var(--font-serif)] text-lg font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-xl">
+          Esempi concreti
+        </h2>
+        <p className="mt-3 text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
+          Case study pubblici con vincoli, stack e impatto: luxury multi-lingua, siti creativi con i18n, progetti dati/GIS.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
-          <Link
-            href="/services"
-            className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Tutti i servizi (rebuild, SEO, performance)
+          <Link href="/services" className="ds-btn-secondary px-6">
+            Panoramica servizi
           </Link>
           {olivier && (
-            <Link
-              href={`/work/${olivier.slug}`}
-              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Rebuild Next.js con i18n + SEO
+            <Link href={`/work/${olivier.slug}`} className="ds-btn-secondary px-6">
+              Rebuild Next.js + SEO multilingua
             </Link>
           )}
-          {atelier14 && (
-            <Link
-              href={`/work/${atelier14.slug}`}
-              className="min-h-[44px] min-w-[44px] inline-flex items-center justify-center rounded-full border border-white/15 px-5 py-2.5 text-sm text-zinc-100 hover:bg-white/5 focus-visible:rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              Bugfix UI + upgrade Shopify (EN + add-on)
+          {jiwa && (
+            <Link href={`/work/${jiwa.slug}`} className="ds-btn-secondary px-6">
+              Sito creativo con WebGL e i18n
             </Link>
           )}
         </div>
-      </section>
+        </div>
+      </SectionReveal>
     </div>
   );
 }

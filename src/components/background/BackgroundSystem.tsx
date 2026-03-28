@@ -1,9 +1,17 @@
 "use client";
 
 import * as React from "react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useBackgroundPolicy } from "@/lib/background/policy";
+import {
+  mergeVisualPreset,
+  radialOverlayForPreset,
+  type VisualPreset,
+} from "@/lib/background/visualPreset";
 
-const FALLBACK_BG = "#0a0a0a";
+/** Allineato a `--ds-bg-base` (globals.css) per nessun alone tra body e canvas. */
+const FALLBACK_BG = "#0a0a0b";
+const FADE_RGB = "10,10,11";
 const RESIZE_DEBOUNCE_MS = 150;
 const RESIZE_THROTTLE_MS = 32;
 
@@ -34,48 +42,48 @@ function configFor(profile: string): Config {
   switch (profile) {
     case "desktop":
       return {
-        lines: 28,
-        segments: 100,
-        lineAlpha: 0.12,
-        lineWidth: 1.2,
-        amp: 32,
-        freq: 0.009,
-        speed: 0.2,
-        dots: 160,
-        dotAlpha: 0.09,
-        nodes: 24,
-        nodeAlpha: 0.14,
-        fadeStart: 0.65,
+        lines: 24,
+        segments: 96,
+        lineAlpha: 0.049,
+        lineWidth: 1.05,
+        amp: 24,
+        freq: 0.0078,
+        speed: 0.14,
+        dots: 96,
+        dotAlpha: 0.027,
+        nodes: 15,
+        nodeAlpha: 0.045,
+        fadeStart: 0.6,
       };
     case "mobile":
       return {
-        lines: 18,
-        segments: 75,
-        lineAlpha: 0.1,
-        lineWidth: 1.1,
-        amp: 24,
-        freq: 0.01,
-        speed: 0.16,
-        dots: 90,
-        dotAlpha: 0.08,
-        nodes: 14,
-        nodeAlpha: 0.11,
-        fadeStart: 0.62,
+        lines: 16,
+        segments: 72,
+        lineAlpha: 0.039,
+        lineWidth: 1,
+        amp: 19,
+        freq: 0.0088,
+        speed: 0.12,
+        dots: 64,
+        dotAlpha: 0.023,
+        nodes: 11,
+        nodeAlpha: 0.039,
+        fadeStart: 0.58,
       };
     case "low-end":
       return {
-        lines: 14,
-        segments: 60,
-        lineAlpha: 0.09,
-        lineWidth: 1.0,
-        amp: 18,
-        freq: 0.011,
-        speed: 0.13,
-        dots: 60,
-        dotAlpha: 0.07,
-        nodes: 10,
-        nodeAlpha: 0.09,
-        fadeStart: 0.6,
+        lines: 12,
+        segments: 56,
+        lineAlpha: 0.032,
+        lineWidth: 0.95,
+        amp: 15,
+        freq: 0.0095,
+        speed: 0.1,
+        dots: 44,
+        dotAlpha: 0.019,
+        nodes: 8,
+        nodeAlpha: 0.033,
+        fadeStart: 0.56,
       };
     default:
       return {
@@ -129,8 +137,16 @@ type Node = {
 
 const SCROLL_ROOT_ID = "scroll-root";
 
-function BackgroundSystem() {
+/** Parallax scroll sul background: px = scrollTop * k, clampato (non compete col contenuto). */
+const PARALLAX_CLAMP_PX = 32;
+const PARALLAX_K = {
+  desktop: { canvas: 0.016, radial: 0.024 },
+  mobile: { canvas: 0.009, radial: 0.014 },
+} as const;
+
+function BackgroundSystem({ visualPreset }: { visualPreset: VisualPreset }) {
   const { profile, fps, dpr, running, density } = useBackgroundPolicy();
+  const reducedMotion = usePrefersReducedMotion();
 
   const canvasRef = React.useRef<HTMLCanvasElement>(null);
   const rafIdRef = React.useRef<number>(0);
@@ -169,9 +185,62 @@ function BackgroundSystem() {
   const policyRunningRef = React.useRef(running);
   const syncRunningRef = React.useRef<(() => void) | null>(null);
 
+  const canvasParallaxRef = React.useRef<HTMLDivElement>(null);
+  const radialParallaxRef = React.useRef<HTMLDivElement>(null);
+  const parallaxRafRef = React.useRef<number>(0);
+
   React.useEffect(() => {
     densityRef.current = density;
   }, [density]);
+
+  /** Profondità quasi subliminale: solo translateY da #scroll-root, clampato. */
+  React.useEffect(() => {
+    if (profile === "off" || typeof window === "undefined") return;
+    if (reducedMotion) return;
+
+    const scrollRoot = document.getElementById(SCROLL_ROOT_ID);
+    if (!scrollRoot) return;
+
+    const mqDesktop = window.matchMedia("(min-width: 1024px)");
+
+    const clamp = (v: number) =>
+      Math.max(-PARALLAX_CLAMP_PX, Math.min(PARALLAX_CLAMP_PX, v));
+
+    const apply = () => {
+      parallaxRafRef.current = 0;
+      const k = mqDesktop.matches ? PARALLAX_K.desktop : PARALLAX_K.mobile;
+      const st = scrollRoot.scrollTop;
+      const yCanvas = clamp(st * k.canvas);
+      const yRadial = clamp(st * k.radial);
+
+      const canvasWrap = canvasParallaxRef.current;
+      const radialWrap = radialParallaxRef.current;
+      if (canvasWrap) {
+        canvasWrap.style.transform = `translate3d(0, ${yCanvas}px, 0) translateZ(0)`;
+      }
+      if (radialWrap) {
+        radialWrap.style.transform = `translate3d(0, ${yRadial}px, 0) translateZ(0)`;
+      }
+    };
+
+    const onScroll = () => {
+      if (parallaxRafRef.current) return;
+      parallaxRafRef.current = window.requestAnimationFrame(apply);
+    };
+
+    scrollRoot.addEventListener("scroll", onScroll, { passive: true });
+    mqDesktop.addEventListener("change", apply);
+    apply();
+
+    return () => {
+      scrollRoot.removeEventListener("scroll", onScroll);
+      mqDesktop.removeEventListener("change", apply);
+      if (parallaxRafRef.current) window.cancelAnimationFrame(parallaxRafRef.current);
+      parallaxRafRef.current = 0;
+      if (canvasParallaxRef.current) canvasParallaxRef.current.style.transform = "";
+      if (radialParallaxRef.current) radialParallaxRef.current.style.transform = "";
+    };
+  }, [profile, reducedMotion]);
 
   React.useEffect(() => {
     policyRunningRef.current = running;
@@ -179,16 +248,14 @@ function BackgroundSystem() {
   }, [running]);
 
   React.useEffect(() => {
-    cfgRef.current = configFor(profile);
-    forceRebuildRef.current = true;
-  }, [profile]);
-
-  React.useEffect(() => {
     frameIntervalRef.current = fps > 0 ? 1000 / fps : 1000;
   }, [fps]);
 
   React.useEffect(() => {
     if (profile === "off" || typeof window === "undefined") return;
+
+    cfgRef.current = mergeVisualPreset(configFor(profile), visualPreset);
+    forceRebuildRef.current = true;
 
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -222,9 +289,9 @@ function BackgroundSystem() {
 
       const r = size / 2;
       const g = sctx.createRadialGradient(r, r, 0, r, r, r);
-      g.addColorStop(0, "rgba(120, 220, 240, 0.5)");
-      g.addColorStop(0.4, "rgba(80, 200, 220, 0.25)");
-      g.addColorStop(1, "rgba(80, 200, 220, 0)");
+      g.addColorStop(0, "rgba(88, 88, 90, 0.12)");
+      g.addColorStop(0.5, "rgba(68, 68, 70, 0.045)");
+      g.addColorStop(1, "rgba(68, 68, 70, 0)");
       sctx.fillStyle = g;
       sctx.fillRect(0, 0, size, size);
 
@@ -279,7 +346,7 @@ function BackgroundSystem() {
       const cfg = cfgRef.current;
       lctx.save();
       lctx.globalAlpha = cfg.dotAlpha;
-      lctx.fillStyle = "rgba(255,255,255,1)";
+      lctx.fillStyle = "rgba(198, 198, 200, 1)";
       lctx.beginPath();
 
       for (let i = 0; i < cfg.dots; i++) {
@@ -313,17 +380,17 @@ function BackgroundSystem() {
 
       // Cache gradients on buffer apply
       const lineGradient = ctx.createLinearGradient(0, 0, sceneW, 0);
-      lineGradient.addColorStop(0, "rgba(80, 200, 220, 1)");
-      lineGradient.addColorStop(0.5, "rgba(100, 210, 230, 1)");
-      lineGradient.addColorStop(1, "rgba(80, 200, 220, 1)");
+      lineGradient.addColorStop(0, "rgba(48, 48, 50, 1)");
+      lineGradient.addColorStop(0.5, "rgba(58, 58, 60, 1)");
+      lineGradient.addColorStop(1, "rgba(44, 44, 46, 1)");
       lineGradientRef.current = lineGradient;
 
       const cfg = cfgRef.current;
       const y0 = sceneH * cfg.fadeStart;
       const g = ctx.createLinearGradient(0, y0, 0, sceneH);
-      g.addColorStop(0, "rgba(10,10,10,0)");
-      g.addColorStop(0.7, "rgba(10,10,10,0.6)");
-      g.addColorStop(1, "rgba(10,10,10,0.95)");
+      g.addColorStop(0, `rgba(${FADE_RGB},0)`);
+      g.addColorStop(0.62, `rgba(${FADE_RGB},0.64)`);
+      g.addColorStop(1, `rgba(${FADE_RGB},0.97)`);
       fadeGradientRef.current = g;
     };
 
@@ -467,8 +534,8 @@ function BackgroundSystem() {
         ctx.globalCompositeOperation = "lighter";
         ctx.lineWidth = cfg.lineWidth;
 
-        const pulse = 0.5 + 0.5 * Math.sin(tSec * 0.4);
-        ctx.globalAlpha = cfg.lineAlpha * (0.75 + 0.25 * pulse);
+        const pulse = 0.93 + 0.07 * Math.sin(tSec * 0.22);
+        ctx.globalAlpha = cfg.lineAlpha * pulse;
         ctx.strokeStyle = lineGradient;
 
         const seg = Math.max(10, cfg.segments);
@@ -511,8 +578,8 @@ function BackgroundSystem() {
         ctx.save();
         ctx.globalCompositeOperation = "lighter";
 
-        ctx.globalAlpha = cfg.nodeAlpha * 0.6;
-        ctx.strokeStyle = "rgba(100, 210, 230, 0.4)";
+        ctx.globalAlpha = cfg.nodeAlpha * 0.45;
+        ctx.strokeStyle = "rgba(76, 76, 78, 0.14)";
         ctx.lineWidth = 1.5;
         ctx.lineCap = "round";
         ctx.beginPath();
@@ -615,7 +682,7 @@ function BackgroundSystem() {
       if (roThrottleTimeout) clearTimeout(roThrottleTimeout);
       if (resizeTimeout) clearTimeout(resizeTimeout);
     };
-  }, [profile, dpr]);
+  }, [profile, dpr, visualPreset]);
 
   if (profile === "off") {
     return (
@@ -626,6 +693,8 @@ function BackgroundSystem() {
       />
     );
   }
+
+  const radial = radialOverlayForPreset(visualPreset);
 
   return (
     <div
@@ -639,23 +708,28 @@ function BackgroundSystem() {
         willChange: "transform",
       }}
     >
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+      <div ref={canvasParallaxRef} className="absolute inset-0 w-full h-full">
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 h-full w-full"
+          style={{
+            pointerEvents: "none",
+            transform: "translateZ(0)",
+            WebkitTransform: "translateZ(0)",
+            backfaceVisibility: "hidden",
+            WebkitBackfaceVisibility: "hidden",
+          }}
+          aria-hidden="true"
+        />
+      </div>
+      <div
+        ref={radialParallaxRef}
+        className="absolute inset-0 max-w-[100vw]"
         style={{
-          pointerEvents: "none",
+          opacity: radial.opacity,
+          background: radial.gradient,
           transform: "translateZ(0)",
           WebkitTransform: "translateZ(0)",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
-        }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 opacity-25"
-        style={{
-          background:
-            "radial-gradient(circle at 30% 20%, rgba(100, 210, 230, 0.18) 0%, rgba(80, 200, 220, 0.08) 40%, transparent 70%)",
         }}
       />
     </div>
