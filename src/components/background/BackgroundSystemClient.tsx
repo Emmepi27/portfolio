@@ -24,14 +24,16 @@ export default function BackgroundSystemClient() {
     };
 
     if ("requestIdleCallback" in window) {
-      const id = (window as Window & { requestIdleCallback: typeof requestIdleCallback }).requestIdleCallback(start, { timeout: 1500 });
+      const id = (window as Window & { requestIdleCallback: typeof requestIdleCallback }).requestIdleCallback(start, {
+        timeout: 450,
+      });
       return () => {
         cancelled = true;
         (window as Window & { cancelIdleCallback?: (id: number) => void }).cancelIdleCallback?.(id);
       };
     }
 
-    const t = setTimeout(start, 700);
+    const t = setTimeout(start, 120);
     return () => {
       cancelled = true;
       clearTimeout(t);
@@ -39,6 +41,8 @@ export default function BackgroundSystemClient() {
   }, [bgMode]);
 
   if (bgMode === "off") return null;
+  // Il contenuto animato arriva dopo idle; il wrapper in layout.tsx ha già `.background-fallback`
+  // (`globals.css`) così non resta un “buco” nero oltre al colore di base.
   if (!ready) return null;
 
   return (

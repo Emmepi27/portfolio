@@ -1,27 +1,25 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import * as React from "react";
 
 const QUERY = "(prefers-reduced-motion: reduce)";
 
-function subscribe(onStoreChange: () => void) {
-  if (typeof window === "undefined") return () => {};
-  const mq = window.matchMedia(QUERY);
-  mq.addEventListener("change", onStoreChange);
-  return () => mq.removeEventListener("change", onStoreChange);
-}
-
-function getSnapshot() {
-  return typeof window !== "undefined" && window.matchMedia(QUERY).matches;
-}
-
-function getServerSnapshot() {
-  return false;
-}
-
 /**
- * Stato live di `prefers-reduced-motion` (route / resize indipendenti; utile dove non c’è gsap.matchMedia con motionOk).
+ * Stato live di `prefers-reduced-motion`.
+ * SSR + primo paint client usano `false` (allineato al markup statico); dopo `useLayoutEffect`
+ * si legge il valore reale — evita hydration mismatch rispetto a `useSyncExternalStore` con
+ * `getServerSnapshot() === false` e client `true`.
  */
 export function usePrefersReducedMotion(): boolean {
-  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
+  const [matches, setMatches] = React.useState(false);
+
+  React.useLayoutEffect(() => {
+    const mq = window.matchMedia(QUERY);
+    const sync = () => setMatches(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  return matches;
 }

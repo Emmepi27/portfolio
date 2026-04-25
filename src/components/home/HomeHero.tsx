@@ -11,6 +11,9 @@ import { HeroPortraitMobile, HeroPortraitDesktop } from "./HeroPortrait";
 
 const EASE = MOTION.ease.out;
 
+/** `from(autoAlpha:0)` senza questo può lasciare il DOM invisibile prima del paint (Strict Mode / hydration). */
+const REVEAL_FROM = { immediateRender: false as const };
+
 /**
  * Hero: un solo H1, value proposition, due CTA con intento distinto, micro-trust vicino alle azioni.
  * Ingresso GSAP: sequenza breve, senza split per parola.
@@ -47,7 +50,7 @@ export default function HomeHero() {
       const tl = gsap.timeline({ defaults: { ease: EASE } });
 
       if (eyebrow) {
-        tl.from(eyebrow, { autoAlpha: 0, y: 6, duration: 0.34 }, 0);
+        tl.from(eyebrow, { autoAlpha: 0, y: 6, duration: 0.34, ...REVEAL_FROM }, 0);
       }
 
       if (h1Lines.length) {
@@ -58,6 +61,7 @@ export default function HomeHero() {
             y: 11,
             duration: 0.4,
             stagger: 0.072,
+            ...REVEAL_FROM,
           },
           0.06
         );
@@ -72,6 +76,7 @@ export default function HomeHero() {
             scale: 0.992,
             duration: 0.42,
             ease: EASE,
+            ...REVEAL_FROM,
           },
           0.22
         );
@@ -86,28 +91,29 @@ export default function HomeHero() {
             scale: 0.99,
             duration: 0.44,
             ease: EASE,
+            ...REVEAL_FROM,
           },
           0.26
         );
       }
 
       if (lede) {
-        tl.from(lede, { autoAlpha: 0, y: 9, duration: 0.36 }, 0.3);
+        tl.from(lede, { autoAlpha: 0, y: 9, duration: 0.36, ...REVEAL_FROM }, 0.3);
       }
       if (method) {
-        tl.from(method, { autoAlpha: 0, y: 7, duration: 0.32 }, 0.36);
+        tl.from(method, { autoAlpha: 0, y: 7, duration: 0.32, ...REVEAL_FROM }, 0.36);
       }
       if (cta) {
-        tl.from(cta, { autoAlpha: 0, y: 7, duration: 0.34 }, 0.42);
+        tl.from(cta, { autoAlpha: 0, y: 7, duration: 0.34, ...REVEAL_FROM }, 0.42);
       }
       if (incarico) {
-        tl.from(incarico, { autoAlpha: 0, y: 6, duration: 0.3 }, 0.48);
+        tl.from(incarico, { autoAlpha: 0, y: 6, duration: 0.3, ...REVEAL_FROM }, 0.48);
       }
       if (vat) {
-        tl.from(vat, { autoAlpha: 0, duration: 0.26 }, 0.52);
+        tl.from(vat, { autoAlpha: 0, duration: 0.26, ...REVEAL_FROM }, 0.52);
       }
       if (chipsLead) {
-        tl.from(chipsLead, { autoAlpha: 0, y: 5, duration: 0.28 }, 0.54);
+        tl.from(chipsLead, { autoAlpha: 0, y: 5, duration: 0.28, ...REVEAL_FROM }, 0.54);
       }
       if (chips.length) {
         tl.from(
@@ -118,6 +124,7 @@ export default function HomeHero() {
             duration: 0.28,
             stagger: 0.032,
             ease: EASE,
+            ...REVEAL_FROM,
           },
           0.58
         );
