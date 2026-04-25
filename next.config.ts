@@ -4,6 +4,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   allowedDevOrigins: ["http://10.108.79.55:3000", "http://localhost:3000"],
   reactCompiler: true,
+  images: {
+    // next/image + query string on public files (cache bust) requires an explicit allowlist in Next 16+
+    localPatterns: [{ pathname: "/images/portrait.webp" }],
+  },
   async redirects() {
     return [
       {
