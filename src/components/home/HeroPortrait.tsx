@@ -1,6 +1,8 @@
 import Image from "next/image";
 
-const PORTRAIT_SRC = "/images/portrait.webp";
+/** Incrementa quando sostituisci `public/images/portrait.webp` (cache CDN/browser). */
+const PORTRAIT_CACHE_KEY = "20260425";
+const PORTRAIT_SRC = `/images/portrait.webp?v=${PORTRAIT_CACHE_KEY}`;
 
 /** Avatar circolare: hero mobile, sotto eyebrow (non in fondo alla colonna). */
 export function HeroPortraitMobile() {
