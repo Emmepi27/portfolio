@@ -206,7 +206,7 @@ export default function NavbarMobile({ isOpen, items, activeKey, onClose }: Prop
 
             {/* nav */}
             <motion.nav
-              className="flex-1 min-h-0 flex flex-col items-stretch justify-start gap-2 px-5 pt-1 pb-6 overflow-y-auto overscroll-contain"
+              className="ds-scrollbar-dark flex-1 min-h-0 flex flex-col items-stretch justify-start gap-2 overflow-y-auto overscroll-contain px-5 pb-6 pt-1"
               variants={navListVars}
               initial="hidden"
               animate="show"

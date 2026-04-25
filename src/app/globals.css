@@ -529,14 +529,23 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior-y: contain;
+  /* Scrollbar tema scuro anche dove i pseudo-elementi WebKit ignorano color-mix */
+  color-scheme: dark;
   /* Evita salti orizzontali quando compare la barra; coerente col tema scuro */
   scrollbar-gutter: stable;
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--ds-text-muted) 42%, transparent) var(--ds-bg-base);
+  /* Firefox: thumb / track espliciti (no color-mix: su Win può rendere il thumb quasi bianco) */
+  scrollbar-color: #52525b var(--ds-bg-base);
 }
 
 #scroll-root::-webkit-scrollbar {
   width: 10px;
+}
+
+#scroll-root::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
 }
 
 #scroll-root::-webkit-scrollbar-track {
@@ -544,14 +553,53 @@ body {
   border-left: 1px solid var(--ds-border);
 }
 
+#scroll-root::-webkit-scrollbar-corner {
+  background: var(--ds-bg-base);
+}
+
 #scroll-root::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--ds-text-muted) 38%, transparent);
+  background: #52525b;
   border-radius: 9999px;
   border: 2px solid var(--ds-bg-base);
 }
 
 #scroll-root::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--ds-text-secondary) 48%, transparent);
+  background: #71717a;
+}
+
+/* Pannelli interni scrollabili (es. drawer nav): stesso tema, thumb più stretto */
+.ds-scrollbar-dark {
+  color-scheme: dark;
+  scrollbar-width: thin;
+  scrollbar-color: #52525b var(--ds-bg-base);
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar-track {
+  background: var(--ds-surface-1);
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar-corner {
+  background: var(--ds-surface-1);
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar-thumb {
+  background: #52525b;
+  border-radius: 9999px;
+  border: 2px solid var(--ds-surface-1);
+}
+
+.ds-scrollbar-dark::-webkit-scrollbar-thumb:hover {
+  background: #71717a;
 }
 
 .background-fallback {
