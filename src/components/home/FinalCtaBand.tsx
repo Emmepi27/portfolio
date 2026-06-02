@@ -66,7 +66,7 @@ export default function FinalCtaBand() {
                 data-final-cta-btn
                 className="ds-btn-secondary ds-btn-final-secondary w-full justify-center px-7 sm:w-auto"
               >
-                Leggi i case study
+                Apri il cinema
               </Link>
             </div>
           </div>

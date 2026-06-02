@@ -36,16 +36,16 @@ export const proofCards: ProofCard[] = [
     href: "/work/jiwa-creative-studio",
   },
   {
-    title: "Traffico",
-    subtitle: "~500 visite/mese",
-    description: "olivieresteticasartoriale.it",
-    href: "/work/olivier-estetica-sartoriale",
+    title: "Prodotto GIS",
+    subtitle: "PostGIS + replay",
+    description: "RSFly",
+    href: "/work/rsfly",
   },
   {
-    title: "Delivery rapida",
-    subtitle: "Go-live in tempi stretti",
-    description: "Checklist CWV/SEO, messa online completa. Dettagli in servizi e case study.",
-    href: "/services",
+    title: "Cinema digitale",
+    subtitle: "offerta libera",
+    description: "Film design con asset approvati e audio opzionale.",
+    href: "/work/proponi-film",
   },
 ];
 

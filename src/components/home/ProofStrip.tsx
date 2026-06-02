@@ -27,7 +27,7 @@ export default function ProofStrip() {
               Risultati verificabili
             </h2>
             <p className="mt-2 max-w-md text-sm leading-relaxed text-[color:var(--ds-text-secondary)]">
-              Siti pubblici e case study interni: stessi link che trovi nel portfolio.
+              Siti pubblici e film interni: stessi link che trovi nel cinema.
             </p>
           </div>
           <Link
@@ -39,10 +39,10 @@ export default function ProofStrip() {
               data-proof-seen-label
               className="inline-block text-sm font-medium text-[color:var(--ds-text-secondary)] transition-colors group-hover/seen:text-[color:var(--ds-text-primary)] group-focus-visible/seen:text-[color:var(--ds-text-primary)]"
             >
-              Tutti i case study
+              Tutti i film
             </span>
             <span className="max-w-[14rem] text-xs leading-snug text-[color:var(--ds-text-muted)] transition-colors group-hover/seen:text-[color:var(--ds-text-secondary)] group-focus-visible/seen:text-[color:var(--ds-text-secondary)] sm:max-w-[16rem]">
-              Progetti con contesto, stack e impatto
+              Film con contesto, stack e impatto
             </span>
           </Link>
         </div>

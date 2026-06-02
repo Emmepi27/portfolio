@@ -3,21 +3,30 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
-import type { Project } from "@/content/projects";
+import type { MediaRole, Project } from "@/content/projects";
 import WorkShowcase3DLoader from "@/components/work/WorkShowcase3DLoader";
 import { useWorkFeaturedMotion } from "@/components/work/useWorkFeaturedMotion";
 
-const LEAD_MAX = 200;
+const LEAD_MAX = 210;
+
+const MEDIA_ROLE_LABELS: Record<MediaRole, string> = {
+  "product-film": "Product film",
+  "webgl-replay": "WebGL replay",
+  "brand-experience": "Experience",
+  "creative-studio": "Creative studio",
+  "hero-contact": "Hero + contatti",
+  "digital-service": "Digital service",
+};
 
 function leadText(p: Project): string {
   const raw = (p.problem || p.summary).trim();
   if (raw.length <= LEAD_MAX) return raw;
-  return `${raw.slice(0, LEAD_MAX - 1).trim()}…`;
+  return `${raw.slice(0, LEAD_MAX - 1).trim()}...`;
 }
 
 type Props = {
   projects: Project[];
-  /** Default: primo dell’array `projects` (ordine editoriale). */
+  /** Default: primo dell'array `projects` in ordine editoriale. */
   featuredSlug?: string;
 };
 
@@ -37,7 +46,6 @@ export default function WorkFeaturedShowcase({ projects, featuredSlug }: Props) 
       className="relative z-10 mt-10 w-full max-w-6xl px-5 sm:mt-12"
       aria-labelledby="work-featured-heading"
     >
-      {/* Anchor per `data-active-index` letto da WorkShowcase3D (featured). */}
       <div
         id="work-featured-story"
         className="sr-only"
@@ -50,7 +58,11 @@ export default function WorkFeaturedShowcase({ projects, featuredSlug }: Props) 
           className="border-b border-[color:var(--ds-border)] px-5 py-5 sm:px-6 sm:py-6"
           data-work-featured-header
         >
-          <p className="ds-eyebrow">Case study in evidenza</p>
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="ds-eyebrow">Film in evidenza</p>
+            <span className="ds-tag">{MEDIA_ROLE_LABELS[featured.mediaRole]}</span>
+            {featured.audio ? <span className="ds-tag">Audio</span> : null}
+          </div>
           <h2
             id="work-featured-heading"
             className="mt-3 font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:mt-4 sm:text-3xl"
@@ -71,7 +83,7 @@ export default function WorkFeaturedShowcase({ projects, featuredSlug }: Props) 
                     src={hero.src.startsWith("/") ? hero.src : `/${hero.src}`}
                     alt={hero.alt}
                     fill
-                    className="object-cover"
+                    className="object-cover transition-[opacity,transform] duration-500 ease-out hover:scale-[1.01] motion-reduce:transition-none motion-reduce:hover:scale-100"
                     sizes="(max-width: 1023px) 100vw, 56vw"
                     priority
                   />
@@ -107,6 +119,8 @@ export default function WorkFeaturedShowcase({ projects, featuredSlug }: Props) 
                   <span>{featured.timeline}</span>
                 </>
               ) : null}
+              <span aria-hidden>·</span>
+              <span>{featured.origin.label}</span>
             </div>
 
             <p
@@ -137,7 +151,7 @@ export default function WorkFeaturedShowcase({ projects, featuredSlug }: Props) 
                 href={`/work/${featured.slug}`}
                 className="ds-btn-primary inline-flex w-full justify-center px-6 sm:w-auto"
               >
-                Apri il case study
+                Apri il film
               </Link>
               {featured.links?.demo ? (
                 <a

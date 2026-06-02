@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SectionReveal } from "@/components/motion/SectionReveal";
-import { projects } from "@/content/projects";
+import { cinemaProjects } from "@/content/projects";
 import { site } from "@/config/site";
 import JsonLd from "@/components/JsonLd";
 import WorkFeaturedShowcase from "@/components/work/WorkFeaturedShowcase";
@@ -9,20 +9,20 @@ import WorkProjectList from "@/components/work/WorkProjectList";
 import ProofGrid from "@/components/proof/proof-grid";
 
 export const metadata: Metadata = {
-  title: "Portfolio e case study",
+  title: "Cinema e case study",
   description:
-    "Progetti con problema, vincoli, stack e impatto. Un case study in evidenza e l’elenco completo: ogni scheda approfondisce decisioni e risultati.",
+    "Cinema editoriale con una selezione corta di film design: RSFly, WebGL replay, experience, studi creativi, hero e digital service.",
   alternates: { canonical: new URL("/work", site.url).href },
 };
 
 export default function WorkPage() {
-  const featuredSlug = projects[0]?.slug;
+  const featuredSlug = cinemaProjects[0]?.slug;
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: "Portfolio",
-    itemListElement: projects.map((p, i) => ({
+    name: "ManuDesign Cinema",
+    itemListElement: cinemaProjects.map((p, i) => ({
       "@type": "ListItem",
       position: i + 1,
       name: p.title,
@@ -31,23 +31,34 @@ export default function WorkPage() {
   };
 
   return (
-    <div className="flex flex-col items-center w-full">
+    <div className="flex w-full flex-col items-center">
       <JsonLd data={itemListJsonLd} />
 
-      <SectionReveal as="header" className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-5 pb-8 pt-12 text-center md:pb-10 md:pt-20">
+      <SectionReveal
+        as="header"
+        className="relative z-10 mx-auto flex w-full max-w-4xl flex-col items-center px-5 pb-8 pt-12 text-center md:pb-10 md:pt-20"
+      >
         <div className="flex w-full flex-col items-center text-center" data-section-reveal>
           <div className="ds-page-accent-rule mb-6" aria-hidden />
-          <p className="ds-eyebrow">Lavori selezionati</p>
+          <p className="ds-eyebrow">Cinema selezionato</p>
           <h1 className="mt-4 font-[var(--font-serif)] text-4xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:mt-5 sm:text-5xl sm:leading-[1.08]">
-            Case study e portfolio
+            Film design, pochi e curati
           </h1>
           <p className="mt-6 max-w-2xl text-balance text-base leading-[1.68] text-[color:var(--ds-text-secondary)] sm:text-[1.0625rem] sm:leading-[1.65] md:max-w-[42rem] md:text-lg">
-            In evidenza un progetto rappresentativo; sotto l’elenco completo. Ogni voce apre il case study con vincoli, stack, decisioni e impatto.
+            Una selezione corta: RSFly, replay WebGL, experience, studi creativi, hero e digital service. Ogni film apre una scheda con vincoli, media e prossimi miglioramenti.
           </p>
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Link href="/work/proponi-film" className="ds-btn-primary px-6">
+              Proponi un film
+            </Link>
+            <Link href="/contact" className="ds-btn-secondary px-6">
+              Parliamone prima
+            </Link>
+          </div>
         </div>
       </SectionReveal>
 
-      <WorkFeaturedShowcase projects={projects} featuredSlug={featuredSlug} />
+      <WorkFeaturedShowcase projects={cinemaProjects} featuredSlug={featuredSlug} />
 
       <SectionReveal
         as="section"
@@ -55,21 +66,21 @@ export default function WorkPage() {
         aria-labelledby="work-all-heading"
       >
         <div data-section-reveal>
-        <h2
-          id="work-all-heading"
-          className="font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
-        >
-          Tutti i progetti
-        </h2>
-        <p className="mt-4 max-w-2xl text-sm leading-[1.65] text-[color:var(--ds-text-secondary)] sm:text-base">
-          Scorri e apri la scheda per il dettaglio: problema, soluzione e link utili sullo stesso URL pubblicato in sitemap.
-        </p>
+          <h2
+            id="work-all-heading"
+            className="font-[var(--font-serif)] text-2xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-3xl"
+          >
+            Film in sala
+          </h2>
+          <p className="mt-4 max-w-2xl text-sm leading-[1.65] text-[color:var(--ds-text-secondary)] sm:text-base">
+            Sei slot pubblicati, niente gallery infinita. Gli screenshot si possono sostituire dopo QA con frame migliori, audio controllato e asset approvati.
+          </p>
         </div>
         <div className="mt-8" data-section-reveal>
           <WorkProjectList
-            projects={projects}
+            projects={cinemaProjects}
             excludeSlugs={
-              featuredSlug && projects.length > 1 ? [featuredSlug] : []
+              featuredSlug && cinemaProjects.length > 1 ? [featuredSlug] : []
             }
           />
         </div>
@@ -91,15 +102,15 @@ export default function WorkPage() {
                 id="work-cta-heading"
                 className="font-[var(--font-serif)] text-xl font-bold tracking-tight text-[color:var(--ds-text-primary)] sm:text-2xl"
               >
-                Vuoi qualcosa di simile?
+                Vuoi aggiungere un film?
               </h2>
               <p className="mt-3 max-w-xl text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
-                Scrivimi obiettivo, stack e vincoli: ti rispondo con priorità, rischi e prossimi passi concreti.
+                Mandami progetto, link, materiali e richiesta audio. L'offerta e libera: prima capiamo asset, diritti, tono e livello di montaggio.
               </p>
             </div>
             <div className="flex shrink-0 flex-wrap gap-3" data-section-reveal>
-              <Link href="/contact" className="ds-btn-primary px-6">
-                Scrivimi con contesto
+              <Link href="/work/proponi-film" className="ds-btn-primary px-6">
+                Apri intake film
               </Link>
               <Link href="/services/agenzie" className="ds-btn-secondary px-6">
                 Collaborazioni agenzie

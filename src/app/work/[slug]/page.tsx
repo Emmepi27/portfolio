@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import type { Metadata } from "next";
 import { site } from "@/config/site";
-import { getProject, projects } from "@/content/projects";
+import { cinemaProjects, getProject } from "@/content/projects";
 import JsonLd from "@/components/JsonLd";
 import WorkCaseStudyArticle from "@/components/work/WorkCaseStudyArticle";
 
@@ -10,7 +10,7 @@ function normalizeSlug(slug: string): string {
 }
 
 export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
+  return cinemaProjects.map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -21,9 +21,9 @@ export async function generateMetadata({
   const { slug } = await params;
   const normalized = normalizeSlug(slug);
   const p = getProject(normalized);
-  if (!p) {
+  if (!p || p.cinemaStatus !== "published") {
     return {
-      title: "Portfolio",
+      title: "Cinema",
     };
   }
   return {
@@ -44,7 +44,7 @@ export default async function WorkDetailPage({
     permanentRedirect(`/work/${normalized}`);
   }
   const p = getProject(normalized);
-  if (!p) notFound();
+  if (!p || p.cinemaStatus !== "published") notFound();
 
   const base = site.url.replace(/\/$/, "");
   const breadcrumbJsonLd = {
@@ -52,7 +52,7 @@ export default async function WorkDetailPage({
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "Home", item: { "@id": `${base}/` } },
-      { "@type": "ListItem", position: 2, name: "Portfolio", item: { "@id": `${base}/work` } },
+      { "@type": "ListItem", position: 2, name: "Cinema", item: { "@id": `${base}/work` } },
       { "@type": "ListItem", position: 3, name: p.title, item: { "@id": `${base}/work/${p.slug}` } },
     ],
   };

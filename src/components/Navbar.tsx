@@ -11,7 +11,7 @@ export default function Navbar() {
 
         <nav aria-label="Navigazione principale" className="flex items-center gap-6 text-sm text-zinc-300">
           <Link href="/work" className="hover:text-zinc-100">
-            Work
+            Cinema
           </Link>
           <Link href="/services" className="hover:text-zinc-100">
             Services

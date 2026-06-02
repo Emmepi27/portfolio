@@ -90,7 +90,7 @@ export default function AboutPage() {
           </div>
           <div className="flex shrink-0 flex-wrap gap-3" data-section-reveal>
             <Link href="/work" className="ds-btn-primary px-6">
-              Apri i case study
+              Apri il cinema
             </Link>
             <Link href="/contact" className="ds-btn-secondary px-6">
               Scrivimi con contesto

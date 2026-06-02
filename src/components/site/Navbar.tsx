@@ -19,7 +19,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { key: 'home', href: '/', label: 'Home' },
-  { key: 'work', href: '/work', label: 'Portfolio' },
+  { key: 'work', href: '/work', label: 'Cinema' },
   { key: 'services', href: '/services', label: 'Servizi' },
   { key: 'about', href: '/about', label: 'Chi sono' },
   { key: 'contact', href: '/contact', label: 'Contatti' }

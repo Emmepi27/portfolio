@@ -1,130 +1,333 @@
 export type ProjectScreenshot = { src: string; alt: string; aspectRatio?: string };
 
-export type Project = {
-    slug: string;
-    title: string;
-    year: string;
-    tags: string[];
-    stack: string[];
-    summary: string;
-    problem: string;
-    constraints: string[];
-    solution: string[];
-    impact: string[];
-    /** Optional human-readable timeline (e.g. "MVP 2–6 settimane"); fallback to year in UI. */
-    timeline?: string;
-    links?: { demo?: string; repo?: string };
-    /** Optional screenshots for 3D showcase; paths under /public (e.g. /images/work/<slug>/01.webp). */
-    screenshots?: ProjectScreenshot[];
-  };
+export type CinemaStatus = "published" | "draft";
+export type MediaRole =
+  | "product-film"
+  | "webgl-replay"
+  | "brand-experience"
+  | "creative-studio"
+  | "hero-contact"
+  | "digital-service";
+export type SubmissionStatus = "curated" | "intake-open" | "planned";
 
-  /** Canonical slugs: lowercase, used for URLs and getProject lookup. */
-  export const projects: Project[] = [
-    {
-      slug: "rsfly",
-      title: "RSFly — IGC Flight Analysis in PostGIS 3D",
-      year: "2024–2025",
-      tags: ["Web GIS", "Flight data", "3D"],
-stack: ["Docker", "Django", "PostgreSQL", "GeoDjango", "PostGIS", "MapLibre"],
-summary:
-  "Prototipo database-centrico: converte file IGC in geometrie 3D native in PostGIS e abilita analisi + visualizzazione web.",
-problem:
-  "Trasformare dati di volo real-world (rumorosi e incompleti) in un modello interrogabile e visualizzabile in modo affidabile.",
-constraints: [
-  "Qualità del dato variabile (IGC da dispositivi e condizioni diverse)",
-  "3D persistente nel database (non solo un effetto di rendering)",
-  "Query ripetibili e verificabili (metriche misurabili, risultati confrontabili)",
-],
-solution: [
-  "Dal modello concettuale allo schema: ORM con vincoli, normalizzazione e integrità referenziale",
-  "Pipeline IGC → parsing/cleaning → geometrie 3D in PostGIS (LINESTRING Z / POINT Z)",
-  "Mappa web con MapLibre per esplorazione del volo e overlay di analisi",
-],
-impact: [
-  "Dal tracciato al modello: normalizzazione, query geospaziali e visual 3D.",
-  "Coerenza e qualità garantite da vincoli e normalizzazione",
-  "Analisi ripetibili via query (comparabili nel tempo e tra voli)",
-  "Fondazione per metriche avanzate e ottimizzazione delle performance",
-],
-timeline: "MVP: 2–6 settimane",
-      links: { repo: "https://github.com/Emmepi27/rsfly" },
-      screenshots: [
-        { src: "/images/work/rsfly/01.webp", alt: "RSFly Web-GIS overview" },
-        { src: "/images/work/rsfly/02.webp", alt: "RSFly 3D track view" },
-        { src: "/images/work/rsfly/04.webp", alt: "RSFly analysis" },
-      ],
+export type ProjectAudio = {
+  src: string;
+  title: string;
+  durationLabel?: string;
+  credit?: string;
+};
+
+export type ProjectOrigin = {
+  label: string;
+  source: "internal" | "client" | "lab" | "user";
+  verified: boolean;
+  note?: string;
+};
+
+export type Project = {
+  slug: string;
+  title: string;
+  year: string;
+  tags: string[];
+  stack: string[];
+  summary: string;
+  problem: string;
+  constraints: string[];
+  solution: string[];
+  impact: string[];
+  /** Optional human-readable timeline, for example "MVP 2-6 settimane". */
+  timeline?: string;
+  links?: { demo?: string; repo?: string };
+  /** Optional screenshots for the cinema renderer; paths live under /public. */
+  screenshots?: ProjectScreenshot[];
+  cinemaOrder: number;
+  cinemaStatus: CinemaStatus;
+  mediaRole: MediaRole;
+  origin: ProjectOrigin;
+  submissionStatus: SubmissionStatus;
+  audio?: ProjectAudio;
+};
+
+/** Canonical slugs: lowercase, used for URLs and getProject lookup. */
+export const projects: Project[] = [
+  {
+    slug: "rsfly",
+    title: "RSFly - prodotto GIS per voli e replay",
+    year: "2024-2026",
+    tags: ["Web GIS", "Flight data", "3D"],
+    stack: ["Django", "GeoDjango", "PostgreSQL", "PostGIS", "MapLibre", "Nuxt"],
+    summary:
+      "Prodotto database-centrico per trasformare tracce IGC in dati geospaziali interrogabili, replay e viste tecniche per piloti.",
+    problem:
+      "Portare dati di volo real-world, spesso rumorosi e incompleti, dentro un modello utile per analisi, confronto e visualizzazione.",
+    constraints: [
+      "Dati di volo e privacy da trattare con prudenza",
+      "Geometrie 3D persistenti in PostGIS, non solo rendering decorativo",
+      "Metriche ripetibili e confrontabili nel tempo",
+    ],
+    solution: [
+      "Pipeline IGC con parsing, pulizia e normalizzazione del tracciato",
+      "Modello GeoDjango/PostGIS con vincoli e geometrie 3D",
+      "Viste mappa e analisi per leggere quota, traccia, performance e contesto",
+    ],
+    impact: [
+      "Base prodotto credibile per demo, tesi e portfolio tecnico",
+      "Separazione tra dato, analisi e interfaccia",
+      "Fondazione per replay, ranking, confronto voli e cockpit meteo",
+    ],
+    timeline: "prodotto in evoluzione",
+    links: { repo: "https://github.com/Emmepi27/rsfly" },
+    screenshots: [
+      { src: "/images/work/rsfly/01.webp", alt: "RSFly overview GIS" },
+      { src: "/images/work/rsfly/02.webp", alt: "RSFly vista traccia 3D" },
+      { src: "/images/work/rsfly/04.webp", alt: "RSFly pannello analisi" },
+    ],
+    cinemaOrder: 1,
+    cinemaStatus: "published",
+    mediaRole: "product-film",
+    origin: {
+      label: "Prodotto interno",
+      source: "internal",
+      verified: true,
+      note: "Screenshot sanitizzati: non usare dati volo privati o account reali.",
     },
-    {
-      slug: "olivier-estetica-sartoriale",
-title: "Olivier — Luxury website rebuild (Next.js + i18n + Technical SEO)",
-year: "2025–2026",
-tags: ["Next.js", "Technical SEO", "i18n", "Performance", "Schema.org"],
-stack: ["Next.js", "React", "TypeScript", "Tailwind CSS", "Framer Motion", "next-intl"],
-summary:
-  "Rebuild di un sito luxury multi-lingua con focus su SEO locale, architettura i18n pulita e componenti riusabili. Implementati metadata dinamici, hreflang/canonical coerenti e JSON-LD (Organization/LocalBusiness, Breadcrumb, pagine content).",
-problem:
-  "Portare un brand ‘quiet luxury’ su una base moderna: multilingua IT/EN/DE, SEO locale robusta (Roma), UX premium e performance senza dipendere da JS client.",
-constraints: [
-  "IT/EN/DE con routing locale e contenuti non hardcoded",
-  "Canonical + hreflang consistenti su tutte le pagine indicizzabili",
-  "JSON-LD modulare e verificabile",
-  "Minimizzare JS client (server components by default)",
-  "Animazioni eleganti ma accessibili (prefers-reduced-motion)",
-],
-solution: [
-  "Migrazione a Next.js App Router con rendering server-first e componenti tipizzati",
-  "Internationalization con next-intl (messages per namespace) e routing locale consistente",
-  "SEO tecnico: metadata per locale + canonical/hreflang + sitemap/robots, strutturati per evitare duplicati",
-  "Schema.org composable (JsonLd component): Organization/LocalBusiness, BreadcrumbList, ItemList dove utile",
-  "UI system con Tailwind + clsx/tailwind-merge; motion discreto con Framer Motion e fallback accessibile",
-],
-impact: [
-  "UX premium con JS client ridotto e attenzione ai Core Web Vitals",
-  "SEO più robusto: canonical/hreflang coerenti + metadata/JSON-LD centralizzati per evitare duplicati",
-  "Pattern riusabili: i18n + SEO “composable” replicabili su nuove pagine/landing senza sorprese",
-  "Codebase più mantenibile: copy in messages, componenti piccoli tipizzati e convenzioni stabili",
-],
-      links: { demo: "https://olivier-estetica.vercel.app/it" },
-      screenshots: [
-        { src: "/images/work/olivier/01.webp", alt: "Olivier homepage" },
-        { src: "/images/work/olivier/02.webp", alt: "Olivier page" },
-      ],
+    submissionStatus: "curated",
+  },
+  {
+    slug: "rsfly-webgl-replay",
+    title: "RSFly WebGL - replay tecnico e screenshot CLI",
+    year: "2026",
+    tags: ["WebGL", "Replay", "MapLibre", "CLI evidence"],
+    stack: ["Three.js", "MapLibre", "deck.gl", "Nuxt", "GeoJSON", "PostGIS"],
+    summary:
+      "Film tecnico separato per mostrare il lato replay: WebGL, layer mappa, overlay e screenshot di verifica CLI quando disponibili.",
+    problem:
+      "Far capire il valore del replay RSFly senza confonderlo con il case prodotto generale.",
+    constraints: [
+      "Nessun dato volo privato o schermata account",
+      "Screenshot CLI solo se sanitizzati e approvati",
+      "Fallback statico quando WebGL, motion o device non sono adatti",
+    ],
+    solution: [
+      "Film dedicato al replay con asset separati dal case RSFly principale",
+      "Media role esplicito per distinguere prodotto, WebGL e prova tecnica",
+      "Copy prudente: niente claim di precisione, sicurezza o production readiness",
+    ],
+    impact: [
+      "Replay piu leggibile in portfolio",
+      "Spazio per aggiungere screenshot CLI e frame WebGL migliori",
+      "Meno rumore nella selezione film complessiva",
+    ],
+    timeline: "screenshot QA da completare",
+    screenshots: [
+      { src: "/images/work/rsfly-webgl-replay/01.webp", alt: "RSFly replay WebGL frame" },
+      { src: "/images/work/rsfly-webgl-replay/02.webp", alt: "RSFly analisi replay" },
+      { src: "/images/work/rsfly-webgl-replay/03.webp", alt: "RSFly overview per contesto replay" },
+    ],
+    cinemaOrder: 2,
+    cinemaStatus: "published",
+    mediaRole: "webgl-replay",
+    origin: {
+      label: "Prodotto interno",
+      source: "internal",
+      verified: true,
+      note: "La parte CLI resta TODO finche non esistono screenshot sanitizzati.",
     },
-    {
-      slug: "jiwa-creative-studio",
-      title: "Jiwa Creative Studio — Sito vetrina con hero WebGL e i18n",
-      year: "2025",
-      tags: ["Vite", "React", "TypeScript", "Three.js", "GSAP", "i18n"],
-      stack: ["Vite", "React", "TypeScript", "Tailwind", "Three.js", "GSAP", "Lenis"],
-      summary:
-        "Sito vetrina per studio creativo: hero WebGL con fallback progressivo, preloader brand, i18n it/en/de, SEO e CWV curati.",
-      problem:
-        "Comunicare identità premium (branding e web design) con un’esperienza immersiva (hero 3D, animazioni) senza penalizzare caricamento, mobile e accessibilità.",
-      constraints: [
-        "Mobile-first, Core Web Vitals sotto controllo (LCP, CLS)",
-        "WebGL solo dove supportato; fallback static/gradient per save-data e reduced motion",
-        "SEO tecnico 2026, JSON-LD, multilingua (it/en/de)",
-      ],
-      solution: [
-        "Hero a tre livelli: THREE.js manuale (HeroField) → R3F particles → gradient static; lazy load canvas 3D dopo first paint",
-        "Preloader con preload font, branch mobile/desktop e fade-out GSAP; ottimizzazione asset e lazy loading",
-        "Metadata, structured data e sitemap per indicizzazione; cookie consent GDPR e GA4",
-      ],
-      impact: [
-        "Hero WebGL con fallback a gradient: zero layout shift, esperienza immersiva anche su mobile e con reduced motion.",
-        "Base performante (CWV, code split, 3D lazy) e manutenzione semplice su stack React + Vite + Three.js.",
-        "SEO e i18n pronti per crescita (it/en/de, JSON-LD, technical SEO 2026).",
-      ],
-      links: { demo: "https://jiwacreativestudio.com/it" },
-      screenshots: [
-        { src: "/images/work/jiwa/01.webp", alt: "Jiwa creative studio" },
-        { src: "/images/work/jiwa/02.webp", alt: "Jiwa 3D section" },
-      ],
+    submissionStatus: "curated",
+  },
+  {
+    slug: "valerio-bar-management-experience",
+    title: "Valerio - Bar Management Experience",
+    year: "2026",
+    tags: ["Nuxt", "Experience", "Hospitality", "Motion"],
+    stack: ["Nuxt", "Vue", "GSAP", "WebGL backdrop", "i18n", "SEO"],
+    summary:
+      "Esperienza per consulenza bar management: hero, route experience e contatti costruiti come percorso visivo controllato.",
+    problem:
+      "Dare a una consulenza hospitality un impatto piu memorabile senza perdere chiarezza su offerta, contatti e metodo.",
+    constraints: [
+      "Tono premium ma operativo",
+      "Motion progressiva e leggibile anche su mobile",
+      "Form e contatti senza promesse commerciali non provate",
+    ],
+    solution: [
+      "Hero fotografico con layer visivi e micro-copy diretto",
+      "Route experience per raccontare metodo, atmosfera e posizionamento",
+      "Contatti integrati nel percorso invece di un blocco finale generico",
+    ],
+    impact: [
+      "Film utile per mostrare art direction e funnel corto",
+      "Buon ponte tra sito vetrina e esperienza interattiva",
+      "Asset gia pronti per una futura versione con audio",
+    ],
+    timeline: "experience route",
+    screenshots: [
+      {
+        src: "/images/work/valerio-bar-management-experience/01.webp",
+        alt: "Valerio Bar Management hero desktop",
+      },
+      {
+        src: "/images/work/valerio-bar-management-experience/02.jpg",
+        alt: "Valerio Bar Management operations section",
+      },
+      {
+        src: "/images/work/valerio-bar-management-experience/03.jpg",
+        alt: "Valerio Bar Management brand still life",
+      },
+    ],
+    cinemaOrder: 3,
+    cinemaStatus: "published",
+    mediaRole: "brand-experience",
+    origin: {
+      label: "Client work",
+      source: "client",
+      verified: true,
+      note: "Usati solo asset pubblici di progetto, non file WhatsApp o documenti.",
     },
-  ];
-  
-  export function getProject(slug: string) {
-    const normalized = slug.trim().toLowerCase();
-    return projects.find((p) => p.slug === normalized);
-  }
-  
+    submissionStatus: "curated",
+  },
+  {
+    slug: "jiwa-creative-studio",
+    title: "Jiwa Creative Studio - hero WebGL e sezioni migliori",
+    year: "2025",
+    tags: ["Vite", "React", "Three.js", "GSAP", "i18n"],
+    stack: ["Vite", "React", "TypeScript", "Tailwind", "Three.js", "GSAP", "Lenis"],
+    summary:
+      "Sito vetrina creativo con hero WebGL, fallback progressivo, i18n e sezioni visuali pensate per restare leggere.",
+    problem:
+      "Comunicare identita creativa con una scena immersiva senza trasformare il sito in una demo pesante.",
+    constraints: [
+      "WebGL solo come progressive enhancement",
+      "Fallback per reduced motion e device meno adatti",
+      "SEO e i18n mantenuti dentro una struttura semplice",
+    ],
+    solution: [
+      "Hero a livelli: WebGL quando supportato, fallback statico quando serve",
+      "Preloader e transizioni calibrate per evitare layout shift",
+      "Screen selezionati sulle sezioni piu forti, non gallery infinita",
+    ],
+    impact: [
+      "Film compatto e piu forte del vecchio elenco generico",
+      "Dimostra 3D applicato a un sito reale",
+      "Buon riferimento per futuri lavori creativi con budget motion controllato",
+    ],
+    links: { demo: "https://jiwacreativestudio.com/it" },
+    screenshots: [
+      { src: "/images/work/jiwa/01.webp", alt: "Jiwa Creative Studio hero" },
+      { src: "/images/work/jiwa/02.webp", alt: "Jiwa Creative Studio sezione 3D" },
+    ],
+    cinemaOrder: 4,
+    cinemaStatus: "published",
+    mediaRole: "creative-studio",
+    origin: {
+      label: "Lab / client-style work",
+      source: "lab",
+      verified: true,
+      note: "Screenshot gia presenti nel portfolio.",
+    },
+    submissionStatus: "curated",
+  },
+  {
+    slug: "superfast-megafurious",
+    title: "Superfast Megafurious - hero, contatti e mappa",
+    year: "2026",
+    tags: ["Vite", "Automotive", "Hero", "Contact map"],
+    stack: ["Vite", "React", "TypeScript", "Tailwind", "Framer Motion"],
+    summary:
+      "Film automotive concentrato su hero, galleria essenziale e contatti con mappa come punto di conversione.",
+    problem:
+      "Rendere immediato il carattere del brand e portare l'utente verso contatto, indirizzo e prova visiva.",
+    constraints: [
+      "Selezione immagini corta, niente gallery dispersiva",
+      "Mappa come sezione utile, non decorazione",
+      "Copy senza claim su risultati commerciali",
+    ],
+    solution: [
+      "Hero full visual con automobile come primo segnale",
+      "Tre frame di supporto per galleria e atmosfera",
+      "Contatti/mappa da verificare con screenshot QA prima del claim visuale finale",
+    ],
+    impact: [
+      "Film piu diretto e vendibile del semplice elenco lavori",
+      "Buon esempio per pagine locali con CTA fisica",
+      "Base per sostituire gli asset con screenshot reali dopo QA",
+    ],
+    timeline: "hero + contatti",
+    screenshots: [
+      { src: "/images/work/superfast-megafurious/01.jpg", alt: "Superfast Megafurious hero automotive" },
+      { src: "/images/work/superfast-megafurious/02.jpg", alt: "Superfast Megafurious visual background" },
+      { src: "/images/work/superfast-megafurious/03.jpg", alt: "Superfast Megafurious gallery frame" },
+    ],
+    cinemaOrder: 5,
+    cinemaStatus: "published",
+    mediaRole: "hero-contact",
+    origin: {
+      label: "Lab prototype",
+      source: "lab",
+      verified: true,
+      note: "Mappa da catturare in QA; gli asset attuali sono immagini di progetto.",
+    },
+    submissionStatus: "curated",
+  },
+  {
+    slug: "facilitieservice-digital-service",
+    title: "Facilitieservice - Digital Service cinematic",
+    year: "2026",
+    tags: ["Nuxt", "Catalog", "Digital service", "Cinematic"],
+    stack: ["Nuxt", "Vue", "TypeScript", "Catalog data", "GSAP"],
+    summary:
+      "Versione digital service del progetto Facilitieservice: hero, catalogo e progetto visivo pronti per screenshot migliori.",
+    problem:
+      "Mostrare un servizio operativo complesso con una narrazione digitale piu ordinata e cinematica.",
+    constraints: [
+      "Nessun claim WebGL finche non e verificato nel codice",
+      "Non usare cataloghi, upload o immagini private non revisionate",
+      "Mantenere il focus su servizio digitale e asset pubblici",
+    ],
+    solution: [
+      "Film pubblicato come cinematic digital service, non come WebGL verificato",
+      "Asset pubblici da hero e progetti",
+      "Slot dati pronto per sostituire i frame con screenshot QA",
+    ],
+    impact: [
+      "Facilitieservice entra nel cinema senza claim tecnici deboli",
+      "La versione WebGL resta TODO verificabile",
+      "Base chiara per una futura scheda con audio e prove visuali",
+    ],
+    timeline: "WebGL TODO",
+    screenshots: [
+      {
+        src: "/images/work/facilitieservice-digital-service/01.webp",
+        alt: "Facilitieservice digital service hero",
+      },
+      {
+        src: "/images/work/facilitieservice-digital-service/02.jpeg",
+        alt: "Facilitieservice progetti cinematic",
+      },
+      {
+        src: "/images/work/facilitieservice-digital-service/03.jpeg",
+        alt: "Facilitieservice set support",
+      },
+    ],
+    cinemaOrder: 6,
+    cinemaStatus: "published",
+    mediaRole: "digital-service",
+    origin: {
+      label: "Client work",
+      source: "client",
+      verified: true,
+      note: "WebGL non verificato: pubblicato come cinematic digital service.",
+    },
+    submissionStatus: "curated",
+  },
+];
+
+export const cinemaProjects = projects
+  .filter((p) => p.cinemaStatus === "published")
+  .sort((a, b) => a.cinemaOrder - b.cinemaOrder)
+  .slice(0, 6);
+
+export function getProject(slug: string) {
+  const normalized = slug.trim().toLowerCase();
+  return projects.find((p) => p.slug === normalized);
+}

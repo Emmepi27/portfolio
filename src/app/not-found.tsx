@@ -5,7 +5,7 @@ import type { Metadata } from "next";
 // Custom title/description for not-found UI (avoids wrong snippet if crawler sees 404).
 export const metadata: Metadata = {
   title: "Pagina non trovata",
-  description: "La pagina richiesta non esiste. Torna alla home o ai case study.",
+  description: "La pagina richiesta non esiste. Torna alla home o al cinema.",
   robots: { index: false, follow: true },
 };
 
@@ -19,7 +19,7 @@ export default function NotFound() {
           Home
         </Link>
         <Link href="/work" className="ds-btn-secondary px-6">
-          Portfolio
+          Cinema
         </Link>
       </div>
     </div>

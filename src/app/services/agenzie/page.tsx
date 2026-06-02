@@ -53,7 +53,7 @@ const processSteps = [
   { step: 4, title: "Handoff", desc: "Documentazione, checklist e rilascio su ambiente concordato." },
 ];
 
-const olivier = projects.find((p) => p.slug === "olivier-estetica-sartoriale");
+const rsfly = projects.find((p) => p.slug === "rsfly");
 const jiwa = projects.find((p) => p.slug === "jiwa-creative-studio");
 
 export default function AgenziePage() {
@@ -225,15 +225,15 @@ export default function AgenziePage() {
           Esempi concreti
         </h2>
         <p className="mt-3 text-base leading-[1.65] text-[color:var(--ds-text-secondary)]">
-          Case study pubblici con vincoli, stack e impatto: luxury multi-lingua, siti creativi con i18n, progetti dati/GIS.
+          Film pubblici con vincoli, stack e impatto: prodotto GIS, siti creativi con i18n, experience e digital service.
         </p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link href="/services" className="ds-btn-secondary px-6">
             Panoramica servizi
           </Link>
-          {olivier && (
-            <Link href={`/work/${olivier.slug}`} className="ds-btn-secondary px-6">
-              Rebuild Next.js + SEO multilingua
+          {rsfly && (
+            <Link href={`/work/${rsfly.slug}`} className="ds-btn-secondary px-6">
+              Prodotto GIS + replay
             </Link>
           )}
           {jiwa && (

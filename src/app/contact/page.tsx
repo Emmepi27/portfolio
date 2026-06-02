@@ -89,7 +89,7 @@ export default function ContactPage() {
             href="/work"
             className="ds-link-accent font-medium"
           >
-            case study nel portfolio
+            film nel cinema
           </Link>
           .
         </p>
